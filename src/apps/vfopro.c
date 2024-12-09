@@ -1,9 +1,9 @@
 #include "vfopro.h"
 #include "../driver/bk4819.h"
 #include "../driver/st7565.h"
-#include "../helper/lootlist.h"
+// #include "../helper/lootlist.h"
 #include "../helper/measurements.h"
-#include "../helper/presetlist.h"
+// #include "../helper/presetlist.h"
 #include "../misc.h"
 #include "../radio.h"
 #include "../scheduler.h"
@@ -53,7 +53,7 @@ static void UpdateRegMenuValue(RegisterSpec s, bool add) {
   uint16_t v, maxValue;
 
   if (s.num == BK4819_REG_13) {
-    v = gCurrentPreset->band.gainIndex;
+    // v = gCurrentPreset->band.gainIndex;
     maxValue = ARRAY_SIZE(gainTable) - 1;
   } else if (s.num == 0x73) {
     v = BK4819_GetAFC();
@@ -80,10 +80,10 @@ static void UpdateRegMenuValue(RegisterSpec s, bool add) {
 
 void VFOPRO_init(void) { RADIO_LoadCurrentVFO(); }
 
-void VFOPRO_deinit(void) { RADIO_ToggleRX(false); }
+void VFOPRO_deinit(void) { }
 
 void VFOPRO_update(void) {
-  RADIO_UpdateMeasurementsEx(&gLoot[gSettings.activeVFO]);
+  // RADIO_UpdateMeasurementsEx(&gLoot[gSettings.activeVFO]);
 
   if (Now() - gLastRender >= 500) {
     gRedrawScreen = true;
@@ -139,10 +139,10 @@ bool VFOPRO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       RADIO_UpdateStep(false);
       return true;
     case KEY_3:
-      RADIO_UpdateSquelchLevel(true);
+      // RADIO_UpdateSquelchLevel(true);
       return true;
     case KEY_9:
-      RADIO_UpdateSquelchLevel(false);
+      // RADIO_UpdateSquelchLevel(false);
       return true;
     case KEY_0:
       RADIO_ToggleModulation();
@@ -236,12 +236,12 @@ static void DrawRegs(void) {
     }
 
     if (rs.num == BK4819_REG_13) {
-      if (gCurrentPreset->band.gainIndex == 18) {
-        sprintf(String, "auto");
-      } else {
-        sprintf(String, "%ddB",
-                gainTable[gCurrentPreset->band.gainIndex].gainDb);
-      }
+      // if (gCurrentPreset->band.gainIndex == 18) {
+      //   sprintf(String, "auto");
+      // } else {
+      //   sprintf(String, "%ddB",
+      //           gainTable[gCurrentPreset->band.gainIndex].gainDb);
+      // }
     } else if (rs.num == 0x73) {
       uint8_t afc = BK4819_GetAFC();
       if (afc) {
@@ -259,9 +259,9 @@ static void DrawRegs(void) {
 }
 
 void VFOPRO_render(void) {
-  STATUSLINE_SetText(gCurrentPreset->band.name);
+  // STATUSLINE_SetText(gCurrentPreset->band.name);
   UI_FSmall(gTxState == TX_ON ? RADIO_GetTXF() : GetScreenF(radio->rx.f));
-  UI_RSSIBar(gLoot[gSettings.activeVFO].rssi, RADIO_GetS(), radio->rx.f, 23);
+  // UI_RSSIBar(gLoot[gSettings.activeVFO].rssi, RADIO_GetS(), radio->rx.f, 23);
 
   if (RADIO_GetRadio() == RADIO_BK4819) {
     DrawRegs();

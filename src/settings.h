@@ -142,9 +142,8 @@ typedef struct {
   uint8_t brightness : 4;
   uint8_t contrast : 4;
   AppType_t mainApp : 8;
-
-  int8_t presetsCount : 8;
-  int8_t activePreset : 8;
+  // int8_t presetsCount : 8;
+  // int8_t activePreset : 8;
   uint16_t batteryCalibration : 12;
   BatteryType batteryType : 2;
   BatteryStyle batteryStyle : 2;
@@ -172,16 +171,16 @@ typedef struct {
 } __attribute__((packed)) F; // 5 B
 // getsize(F)
 
-typedef struct {
-  F rx;
-  F tx;
-  char name[10];
-  uint8_t memoryBanks;
-  ModulationType modulation : 4;
-  BK4819_FilterBandwidth_t bw : 2;
-  TXOutputPower power : 2;
-  Radio radio : 2;
-} __attribute__((packed)) CH; // 22 B
+// typedef struct {
+//   F rx;
+//   F tx;
+//   char name[10];
+//   uint8_t memoryBanks;
+//   ModulationType modulation : 4;
+//   BK4819_FilterBandwidth_t bw : 2;
+//   TXOutputPower power : 2;
+//   Radio radio : 2;
+// } __attribute__((packed)) CH; // 22 B
 // getsize(CH)
 
 typedef struct {
@@ -217,17 +216,17 @@ typedef struct {
   uint8_t e : 8;
 } __attribute__((packed)) PowerCalibration;
 
-typedef struct {
-  PowerCalibration powCalib;
-  uint32_t lastUsedFreq : 27;
-  uint32_t offset : 26;
-  Band band;
-  uint8_t memoryBanks : 8;
-  TXOutputPower power : 2;
-  OffsetDirection offsetDir : 2;
-  Radio radio : 2;
-  bool allowTx : 1;
-} __attribute__((packed)) Preset;
+// typedef struct {
+//   PowerCalibration powCalib;
+//   uint32_t lastUsedFreq : 27;
+//   uint32_t offset : 26;
+//   Band band;
+//   uint8_t memoryBanks : 8;
+//   TXOutputPower power : 2;
+//   OffsetDirection offsetDir : 2;
+//   Radio radio : 2;
+//   bool allowTx : 1;
+// } __attribute__((packed)) Preset;
 // getsize(Preset)
 
 // char (*__chCount)(void)[(8196 - sizeof(Settings) - sizeof(Preset) * 29 -
@@ -236,8 +235,8 @@ typedef struct {
 #define SETTINGS_OFFSET (0)
 #define SETTINGS_SIZE sizeof(Settings)
 
-#define PRESET_SIZE sizeof(Preset)
-#define CH_SIZE sizeof(CH)
+// #define PRESET_SIZE sizeof(Preset)
+// #define CH_SIZE sizeof(CH)
 #define VFO_SIZE sizeof(VFO)
 
 #define VFOS_OFFSET (SETTINGS_OFFSET + SETTINGS_SIZE)

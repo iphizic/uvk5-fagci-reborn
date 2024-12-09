@@ -75,34 +75,34 @@ void SP_Init(Band *b) {
 }
 
 #include "../driver/uart.h"
-void SP_AddPoint(const Loot *msm) {
-  uint32_t xs = ConvertDomain(msm->f, range->start, range->end, 0, MAX_POINTS);
-  uint32_t xe =
-      ConvertDomain(msm->f + step, range->start, range->end, 0, MAX_POINTS);
-
-  if (xe > MAX_POINTS) {
-    xe = MAX_POINTS;
-  }
-  for (x = xs; x < xe; ++x) {
-    if (ox != x) {
-      ox = x;
-      rssiHistory[x] = 0;
-      noiseHistory[x] = UINT8_MAX;
-    }
-    if (msm->rssi > rssiHistory[x]) {
-      rssiHistory[x] = msm->rssi;
-    }
-    if (msm->noise < noiseHistory[x]) {
-      noiseHistory[x] = msm->noise;
-    }
-  }
-  if (x + 1 > filledPoints) {
-    filledPoints = x + 1;
-  }
-  if (filledPoints > MAX_POINTS) {
-    filledPoints = MAX_POINTS;
-  }
-}
+// void SP_AddPoint(const Loot *msm) {
+//   uint32_t xs = ConvertDomain(msm->f, range->start, range->end, 0, MAX_POINTS);
+//   uint32_t xe =
+//       ConvertDomain(msm->f + step, range->start, range->end, 0, MAX_POINTS);
+//
+//   if (xe > MAX_POINTS) {
+//     xe = MAX_POINTS;
+//   }
+//   for (x = xs; x < xe; ++x) {
+//     if (ox != x) {
+//       ox = x;
+//       rssiHistory[x] = 0;
+//       noiseHistory[x] = UINT8_MAX;
+//     }
+//     if (msm->rssi > rssiHistory[x]) {
+//       rssiHistory[x] = msm->rssi;
+//     }
+//     if (msm->noise < noiseHistory[x]) {
+//       noiseHistory[x] = msm->noise;
+//     }
+//   }
+//   if (x + 1 > filledPoints) {
+//     filledPoints = x + 1;
+//   }
+//   if (filledPoints > MAX_POINTS) {
+//     filledPoints = MAX_POINTS;
+//   }
+// }
 
 static VMinMax getV() {
   const uint16_t rssiMin = minRssi(rssiHistory, filledPoints);
@@ -114,27 +114,27 @@ static VMinMax getV() {
   return (VMinMax){vMin, vMax};
 }
 
-void SP_Render(const Preset *p) {
-  const VMinMax v = getV();
+// void SP_Render(const Preset *p) {
+//   const VMinMax v = getV();
+//
+//   if (p) {
+//     UI_DrawTicks(S_BOTTOM, &p->band);
+//   }
+//
+//   DrawHLine(0, S_BOTTOM, MAX_POINTS, C_FILL);
+//
+//   for (uint8_t i = 0; i < filledPoints; ++i) {
+//     uint8_t yVal = ConvertDomain(rssiHistory[i], v.vMin, v.vMax, 0, SPECTRUM_H);
+//     DrawVLine(i, S_BOTTOM - yVal, yVal, C_FILL);
+//   }
+// }
 
-  if (p) {
-    UI_DrawTicks(S_BOTTOM, &p->band);
-  }
-
-  DrawHLine(0, S_BOTTOM, MAX_POINTS, C_FILL);
-
-  for (uint8_t i = 0; i < filledPoints; ++i) {
-    uint8_t yVal = ConvertDomain(rssiHistory[i], v.vMin, v.vMax, 0, SPECTRUM_H);
-    DrawVLine(i, S_BOTTOM - yVal, yVal, C_FILL);
-  }
-}
-
-void SP_RenderArrow(const Preset *p, uint32_t f) {
-  uint8_t cx = ConvertDomain(f, p->band.bounds.start, p->band.bounds.end, 0,
-                             MAX_POINTS - 1);
-  DrawVLine(cx, SPECTRUM_Y, 4, C_FILL);
-  FillRect(cx - 2, SPECTRUM_Y, 5, 2, C_FILL);
-}
+// void SP_RenderArrow(const Preset *p, uint32_t f) {
+//   uint8_t cx = ConvertDomain(f, p->band.bounds.start, p->band.bounds.end, 0,
+//                              MAX_POINTS - 1);
+//   DrawVLine(cx, SPECTRUM_Y, 4, C_FILL);
+//   FillRect(cx - 2, SPECTRUM_Y, 5, 2, C_FILL);
+// }
 
 void SP_RenderRssi(uint16_t rssi, char *text, bool top) {
   const VMinMax v = getV();
@@ -170,33 +170,33 @@ void SP_RenderGraph() {
   }
 }
 
-void SP_AddGraphPoint(const Loot *msm) {
-  rssiHistory[MAX_POINTS - 1] = msm->rssi;
-  noiseHistory[MAX_POINTS - 1] = msm->noise;
-  filledPoints = MAX_POINTS;
-}
-
-void SP_Shift(int16_t n) {
-  if (n == 0) {
-    return;
-  }
-  if (n > 0) {
-    while (n-- > 0) {
-      for (int16_t i = MAX_POINTS - 2; i >= 0; --i) {
-        rssiHistory[i + 1] = rssiHistory[i];
-        noiseHistory[i + 1] = noiseHistory[i];
-      }
-      rssiHistory[0] = 0;
-      noiseHistory[0] = UINT8_MAX;
-    }
-  } else {
-    while (n++ < 0) {
-      for (int16_t i = 0; i < MAX_POINTS - 1; ++i) {
-        rssiHistory[i] = rssiHistory[i + 1];
-        noiseHistory[i] = noiseHistory[i + 1];
-      }
-      rssiHistory[MAX_POINTS - 1] = 0;
-      noiseHistory[MAX_POINTS - 1] = UINT8_MAX;
-    }
-  }
-}
+// void SP_AddGraphPoint(const Loot *msm) {
+//   rssiHistory[MAX_POINTS - 1] = msm->rssi;
+//   noiseHistory[MAX_POINTS - 1] = msm->noise;
+//   filledPoints = MAX_POINTS;
+// }
+//
+// void SP_Shift(int16_t n) {
+//   if (n == 0) {
+//     return;
+//   }
+//   if (n > 0) {
+//     while (n-- > 0) {
+//       for (int16_t i = MAX_POINTS - 2; i >= 0; --i) {
+//         rssiHistory[i + 1] = rssiHistory[i];
+//         noiseHistory[i + 1] = noiseHistory[i];
+//       }
+//       rssiHistory[0] = 0;
+//       noiseHistory[0] = UINT8_MAX;
+//     }
+//   } else {
+//     while (n++ < 0) {
+//       for (int16_t i = 0; i < MAX_POINTS - 1; ++i) {
+//         rssiHistory[i] = rssiHistory[i + 1];
+//         noiseHistory[i] = noiseHistory[i + 1];
+//       }
+//       rssiHistory[MAX_POINTS - 1] = 0;
+//       noiseHistory[MAX_POINTS - 1] = UINT8_MAX;
+//     }
+//   }
+// }

@@ -6,7 +6,7 @@
 #include "../ui/spectrum.h"
 #include "finput.h"
 
-static Loot msm;
+// static Loot msm;
 
 void LEVEL_init(void) {}
 
@@ -17,9 +17,9 @@ static uint32_t lastUpdate = 0;
 void LEVEL_update(void) {
   if (Now() - lastUpdate > 50) {
     lastUpdate = Now();
-    msm.rssi = RADIO_GetRSSI();
+    // msm.rssi = RADIO_GetRSSI();
     SP_Shift(-1);
-    SP_AddGraphPoint(&msm);
+    // SP_AddGraphPoint(&msm);
     gRedrawScreen = true;
   }
 }
@@ -66,6 +66,6 @@ void LEVEL_render(void) {
   SP_RenderGraph();
   DrawHLine(0, SPECTRUM_Y, 2, C_FILL);
   DrawHLine(0, SPECTRUM_Y + SPECTRUM_H, 2, C_FILL);
-  PrintSmallEx(LCD_XCENTER, LCD_HEIGHT - 2, POS_C, C_FILL, "%d",
-               Rssi2DBm(msm.rssi));
+  // PrintSmallEx(LCD_XCENTER, LCD_HEIGHT - 2, POS_C, C_FILL, "%d",
+               // Rssi2DBm(msm.rssi));
 }

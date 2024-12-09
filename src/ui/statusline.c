@@ -98,9 +98,9 @@ void STATUSLINE_render(void) {
     icons[idx++] = SYM_SCAN;
   }
 
-  if (LOOT_Size() == LOOT_SIZE_MAX) {
-    icons[idx++] = SYM_LOOT_FULL;
-  }
+  // if (LOOT_Size() == LOOT_SIZE_MAX) {
+  //   icons[idx++] = SYM_LOOT_FULL;
+  // }
 
   if (gMonitorMode) {
     icons[idx++] = SYM_MONITOR;
@@ -114,18 +114,17 @@ void STATUSLINE_render(void) {
     icons[idx++] = SYM_CONVERTER;
   }
 
-  if (gSettings.noListen &&
-      (gCurrentApp == APP_SPECTRUM || gCurrentApp == APP_ANALYZER)) {
-    icons[idx++] = SYM_NO_LISTEN;
-  }
+  // if (gSettings.noListen &&
+  //     (gCurrentApp == APP_SPECTRUM || gCurrentApp == APP_ANALYZER)) {
+  //   icons[idx++] = SYM_NO_LISTEN;
+  // }
 
   if (gSettings.keylock) {
     icons[idx++] = SYM_LOCK;
   }
 
-  if ((gCurrentApp == APP_SAVECH || gCurrentApp == APP_VFO1 ||
-       gCurrentApp == APP_VFO2 || gCurrentApp == APP_SPECTRUM ||
-       gCurrentApp == APP_LOOT_LIST || gCurrentApp == APP_PRESETS_LIST)) {
+  if (( /* gCurrentApp == APP_SAVECH || */gCurrentApp == APP_VFO1 ||
+       gCurrentApp == APP_VFO2 /*|| gCurrentApp == APP_SPECTRUM*/)) {
     if (gSettings.currentScanlist == 15) {
       PrintSmallEx(LCD_XCENTER, BASE_Y, POS_C, C_FILL, "SL all");
     } else {

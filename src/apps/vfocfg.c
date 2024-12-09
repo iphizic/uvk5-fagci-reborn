@@ -3,7 +3,7 @@
 #include "../driver/st7565.h"
 #include "../helper/measurements.h"
 #include "../helper/numnav.h"
-#include "../helper/presetlist.h"
+// #include "../helper/presetlist.h"
 #include "../misc.h"
 #include "../radio.h"
 #include "../ui/graphics.h"
@@ -44,7 +44,7 @@ static void setInitialSubmenuIndex(void) {
     subMenuIndex = radio->radio;
     break;
   case M_BW:
-    subMenuIndex = gCurrentPreset->band.bw;
+    // subMenuIndex = gCurrentPreset->band.bw;
     break;
   case M_RX_CODE_TYPE:
     subMenuIndex = radio->rx.codeType;
@@ -59,25 +59,25 @@ static void setInitialSubmenuIndex(void) {
     subMenuIndex = radio->tx.code;
     break;
   case M_F_TXP:
-    subMenuIndex = gCurrentPreset->power;
+    // subMenuIndex = gCurrentPreset->power;
     break;
   case M_TX_OFFSET_DIR:
-    subMenuIndex = gCurrentPreset->offsetDir;
+    // subMenuIndex = gCurrentPreset->offsetDir;
     break;
   case M_MODULATION:
     subMenuIndex = radio->modulation;
     break;
   case M_STEP:
-    subMenuIndex = gCurrentPreset->band.step;
+    // subMenuIndex = gCurrentPreset->band.step;
     break;
   case M_SQ_TYPE:
-    subMenuIndex = gCurrentPreset->band.squelchType;
+    // subMenuIndex = gCurrentPreset->band.squelchType;
     break;
   case M_SQ:
-    subMenuIndex = gCurrentPreset->band.squelch;
+    // subMenuIndex = gCurrentPreset->band.squelch;
     break;
   case M_GAIN:
-    subMenuIndex = gCurrentPreset->band.gainIndex;
+    // subMenuIndex = gCurrentPreset->band.gainIndex;
     break;
   default:
     subMenuIndex = 0;
@@ -164,10 +164,10 @@ static void setTXF(uint32_t f) {
   RADIO_SaveCurrentVFO();
 }
 
-static void setTXOffset(uint32_t f) {
-  gCurrentPreset->offset = f;
-  PRESETS_SaveCurrent();
-}
+// static void setTXOffset(uint32_t f) {
+//   gCurrentPreset->offset = f;
+//   PRESETS_SaveCurrent();
+// }
 
 void VFOCFG_init(void) { updateTxCodeListSize(); }
 
@@ -188,12 +188,12 @@ static bool accept(void) {
     APPS_run(APP_FINPUT);
     return true;
   case M_TX_OFFSET:
-    gFInputCallback = setTXOffset;
-    gFInputTempFreq = gCurrentPreset->offset;
+    // gFInputCallback = setTXOffset;
+    // gFInputTempFreq = gCurrentPreset->offset;
     APPS_run(APP_FINPUT);
     return true;
   case M_SAVE:
-    APPS_run(APP_SAVECH);
+    // APPS_run(APP_SAVECH);
     return true;
   default:
     break;
@@ -280,7 +280,7 @@ void VFOCFG_render(void) {
   } else {
     UI_ShowMenu(getMenuItemText, ARRAY_SIZE(menu), menuIndex);
     char Output[32] = "";
-    GetMenuItemValue(item->type, Output);
+    // GetMenuItemValue(item->type, Output);
     PrintMediumEx(LCD_XCENTER, LCD_HEIGHT - 4, POS_C, C_FILL, Output);
   }
 }
