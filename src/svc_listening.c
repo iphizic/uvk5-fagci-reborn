@@ -13,7 +13,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-// Loot *(*gListenFn)(void) = NULL;
+void (*gListenFn)(void) = NULL;
 
 static const uint8_t VFOS_COUNT = 2;
 static const uint8_t DW_CHECK_DELAY = 20;
@@ -64,9 +64,9 @@ static void sync(void) {
 }
 
 void SVC_LISTEN_Init(void) {
-  // if (!gListenFn) {
-  //   gListenFn = RADIO_UpdateMeasurements;
-  // }
+  if (!gListenFn) {
+    gListenFn = RADIO_UpdateMeasurements;
+  }
 
   gDW.lastActiveVFO = -1;
   gDW.activityOnVFO = 0;
@@ -117,7 +117,7 @@ void SVC_LISTEN_Update(void) {
     return;
   }
 
-  // gListenFn();
+  gListenFn();
   if (gSettings.scanTimeout < 10) {
     BK4819_ResetRSSI();
   }
@@ -149,6 +149,6 @@ void SVC_LISTEN_Update(void) {
 }
 
 void SVC_LISTEN_Deinit(void) {
-  // gListenFn = NULL;
+  gListenFn = NULL;
   RADIO_ToggleRX(false);
 }

@@ -61,11 +61,11 @@ void SVC_SCAN_Init(void) {
   }
 
   if (!gScanFn) {
-    if (radio->channel >= 0) {
-      // gScanFn = RADIO_NextCH;
-    } else {
-      // gScanFn = RADIO_NextPresetFreqXBand;
-    }
+    // if (radio->channel >= 0) {
+    //   // gScanFn = RADIO_NextCH;
+    // } else {
+    //   // gScanFn = RADIO_NextPresetFreqXBand;
+    // }
   }
 }
 

@@ -53,6 +53,7 @@ void RADIO_SaveCurrentVFO();
 void RADIO_LoadCurrentVFO();
 
 TXState RADIO_GetTXState(uint32_t txF);
+bool RADIO_allowTX(uint32_t f);
 void RADIO_ToggleRX(bool on);
 void RADIO_ToggleTX(bool on);
 void RADIO_ToggleTXEX(bool on, uint32_t txF, uint8_t power, bool paEnabled);
@@ -94,7 +95,7 @@ uint32_t RADIO_GetTXFEx(VFO *vfo);
 void RADIO_ToggleBK1080(bool on);
 ModulationType getNextModulation(bool next);
 
-// Loot *RADIO_UpdateMeasurements();
+void RADIO_UpdateMeasurements();
 // bool RADIO_UpdateMeasurementsEx(Loot *dest);
 
 #endif /* end of include guard: RADIO_H */

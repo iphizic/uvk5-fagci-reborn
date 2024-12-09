@@ -28,7 +28,7 @@ static void render2VFOPart(uint8_t i) {
   const uint8_t fp3 = f % 100;
   const char *mod =
       modulationTypeOptions[vfo->modulation];
-  // const uint32_t step = StepFrequencyTable[p->band.step];
+  const uint32_t step = StepFrequencyTable[vfo->step];
 
   if (isActive && gTxState <= TX_ON) {
     FillRect(0, bl - 14, 28, 7, C_FILL);
@@ -52,22 +52,22 @@ static void render2VFOPart(uint8_t i) {
                       TX_STATE_NAMES[gTxState]);
     PrintSmallEx(LCD_XCENTER, bl - 8 + 6, POS_C, C_FILL, "%u", RADIO_GetTXF());
   } else {
-    if (vfo->channel >= 0) {
-      if (gSettings.chDisplayMode == CH_DISPLAY_MODE_F) {
-        PrintBigDigitsEx(LCD_WIDTH - 19, bl, POS_R, C_FILL, "%4u.%03u", fp1,
-                         fp2);
-      } else if (gSettings.chDisplayMode == CH_DISPLAY_MODE_N) {
-        PrintMediumBoldEx(LCD_XCENTER, bl - 4, POS_C, C_FILL, gVFONames[i]);
-      } else {
-        PrintMediumBoldEx(LCD_XCENTER, bl - 8, POS_C, C_FILL, gVFONames[i]);
-        PrintMediumEx(LCD_XCENTER, bl, POS_C, C_FILL, "%4u.%03u", fp1, fp2);
-      }
-      PrintSmallEx(14, bl - 9, POS_C, C_INVERT, "MR %03u", vfo->channel + 1);
-    } else {
+    // if (vfo->channel >= 0) {
+    //   if (gSettings.chDisplayMode == CH_DISPLAY_MODE_F) {
+    //     PrintBigDigitsEx(LCD_WIDTH - 19, bl, POS_R, C_FILL, "%4u.%03u", fp1,
+    //                      fp2);
+    //   } else if (gSettings.chDisplayMode == CH_DISPLAY_MODE_N) {
+    //     PrintMediumBoldEx(LCD_XCENTER, bl - 4, POS_C, C_FILL, gVFONames[i]);
+    //   } else {
+    //     PrintMediumBoldEx(LCD_XCENTER, bl - 8, POS_C, C_FILL, gVFONames[i]);
+    //     PrintMediumEx(LCD_XCENTER, bl, POS_C, C_FILL, "%4u.%03u", fp1, fp2);
+    //   }
+    //   PrintSmallEx(14, bl - 9, POS_C, C_INVERT, "MR %03u", vfo->channel + 1);
+    // } else {
       PrintBigDigitsEx(LCD_WIDTH - 19, bl, POS_R, C_FILL, "%4u.%03u", fp1, fp2);
       PrintMediumBoldEx(LCD_WIDTH, bl, POS_R, C_FILL, "%02u", fp3);
       PrintSmallEx(14, bl - 9, POS_C, C_INVERT, "VFO");
-    }
+    // }
     PrintSmallEx(LCD_WIDTH - 1, bl - 9, POS_R, C_FILL, mod);
   }
 
@@ -82,21 +82,21 @@ static void render2VFOPart(uint8_t i) {
   //     PrintSmallEx(0, bl + 6, POS_L, C_FILL, "D%03oN", DCS_Options[loot->cd]);
   //   }
   // }
-  // PrintSmallEx(LCD_XCENTER, bl + 6, POS_C, C_FILL, "%c %c SQ%u %c %s %s",
-  //              p->allowTx ? TX_POWER_NAMES[p->power][0] : ' ',
-  //              "wNnW"[p->band.bw], p -> band.squelch,
-  //              RADIO_GetTXFEx(vfo, p) != vfo->rx.f
-  //                  ? (p->offsetDir ? TX_OFFSET_NAMES[p->offsetDir][0] : '*')
-  //                  : ' ',
-  //              vfo->tx.codeType ? TX_CODE_TYPES[vfo->tx.codeType] : "",
-  //              shortRadioNames[r]);
+  PrintSmallEx(LCD_XCENTER, bl + 6, POS_C, C_FILL, "%c %c SQ%u %c %s %s",
+               RADIO_allowTX(vfo->rx.f)? TX_POWER_NAMES[vfo->power][0] : ' ',
+               "wNnW"[vfo->bw], vfo->squelch,
+               RADIO_GetTXFEx(vfo) != vfo->rx.f
+                   ? (vfo->offsetDir ? TX_OFFSET_NAMES[vfo->offsetDir][0] : '*')
+                   : ' ',
+               vfo->tx.codeType ? TX_CODE_TYPES[vfo->tx.codeType] : "",
+               shortRadioNames[r]);
 
   /* if (loot->lastTimeOpen) {
     PrintSmallEx(LCD_WIDTH, bl + 6, POS_R, C_FILL, "%02u:%02u %us", est / 60,
                  est % 60, loot->duration / 1000);
   } else { */
-    // PrintSmallEx(LCD_WIDTH, bl + 6, POS_R, C_FILL, "%d.%02dk", step / 100,
-    //              step % 100);
+    PrintSmallEx(LCD_WIDTH, bl + 6, POS_R, C_FILL, "%d.%02dk", step / 100,
+                 step % 100);
   // }
 }
 

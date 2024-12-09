@@ -77,43 +77,42 @@ void drawTicks(uint8_t y, uint32_t fs, uint32_t fe, uint32_t div, uint8_t h) {
   }
 }
 
-void UI_DrawTicks(uint8_t y, const Band *band) {
-  const FRange *range = &band->bounds;
-  uint32_t fs = range->start;
-  uint32_t fe = range->end;
-  uint32_t bw = fe - fs;
-
-  for (uint32_t p = 100000000; p >= 10; p /= 10) {
-    if (p < bw) {
-      drawTicks(y, fs, fe, p / 2, 2);
-      drawTicks(y, fs, fe, p, 3);
-      return;
-    }
-  }
+void UI_DrawTicks(uint8_t y) {
+  // const FRange *range = &band->bounds;
+  // uint32_t fs = range->start;
+  // uint32_t fe = range->end;
+  // uint32_t bw = fe - fs;
+  //
+  // for (uint32_t p = 100000000; p >= 10; p /= 10) {
+  //   if (p < bw) {
+  //     drawTicks(y, fs, fe, p / 2, 2);
+  //     drawTicks(y, fs, fe, p, 3);
+  //     return;
+  //   }
+  // }
 }
 
-void UI_DrawSpectrumElements(const uint8_t sy, uint8_t msmDelay, int16_t sq,
-                             Band *currentBand) {
+void UI_DrawSpectrumElements(const uint8_t sy, uint8_t msmDelay, int16_t sq) {
   PrintSmallEx(0, sy - 3, POS_L, C_FILL, "%ums", msmDelay);
   if (sq >= 255) {
     PrintSmallEx(LCD_WIDTH - 2, sy - 3, POS_R, C_FILL, "SQ off");
   } else {
     PrintSmallEx(LCD_WIDTH - 2, sy - 3, POS_R, C_FILL, "SQ %d", sq);
   }
-  PrintSmallEx(LCD_WIDTH - 2, sy - 3 + 6, POS_R, C_FILL, "%s",
-               modulationTypeOptions[currentBand->modulation]);
+  // PrintSmallEx(LCD_WIDTH - 2, sy - 3 + 6, POS_R, C_FILL, "%s",
+  //              modulationTypeOptions[currentBand->modulation]);
 
   // if (gLastActiveLoot) {
   //   PrintMediumBoldEx(LCD_XCENTER, 14, POS_C, C_FILL, "%u.%05u",
   //                     gLastActiveLoot->f / MHZ, gLastActiveLoot->f % MHZ);
   // }
 
-  uint32_t fs = currentBand->bounds.start;
-  uint32_t fe = currentBand->bounds.end;
+  // uint32_t fs = currentBand->bounds.start;
+  // uint32_t fe = currentBand->bounds.end;
 
-  PrintSmallEx(0, LCD_HEIGHT - 1, POS_L, C_FILL, "%u.%05u", fs / MHZ, fs % MHZ);
-  PrintSmallEx(LCD_WIDTH, LCD_HEIGHT - 1, POS_R, C_FILL, "%u.%05u", fe / MHZ,
-               fe % MHZ);
+  // PrintSmallEx(0, LCD_HEIGHT - 1, POS_L, C_FILL, "%u.%05u", fs / MHZ, fs % MHZ);
+  // PrintSmallEx(LCD_WIDTH, LCD_HEIGHT - 1, POS_R, C_FILL, "%u.%05u", fe / MHZ,
+  //              fe % MHZ);
 }
 
 void UI_ShowWait() {

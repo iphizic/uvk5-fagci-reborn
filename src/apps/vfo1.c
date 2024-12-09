@@ -141,17 +141,17 @@ static void scanlistByKey(KEY_Code_t key) {
 // }
 
 bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
-  if (!SVC_Running(SVC_SCAN) && !bKeyPressed && !bKeyHeld &&
-      radio->channel >= 0) {
-    if (!gIsNumNavInput && key <= KEY_9) {
-      NUMNAV_Init(radio->channel + 1, 1, 1000);
-      // gNumNavCallback = setChannel;
-    }
-    if (gIsNumNavInput) {
-      NUMNAV_Input(key);
-      return true;
-    }
-  }
+  // if (!SVC_Running(SVC_SCAN) && !bKeyPressed && !bKeyHeld &&
+  //     radio->channel >= 0) {
+  //   if (!gIsNumNavInput && key <= KEY_9) {
+  //     NUMNAV_Init(radio->channel + 1, 1, 1000);
+  //     // gNumNavCallback = setChannel;
+  //   }
+  //   if (gIsNumNavInput) {
+  //     NUMNAV_Input(key);
+  //     return true;
+  //   }
+  // }
   if (key == KEY_PTT && !gIsNumNavInput) {
     RADIO_ToggleTX(bKeyHeld);
     return true;
@@ -277,18 +277,18 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
     case KEY_8:
     case KEY_9:
       if (SVC_Running(SVC_SCAN)) {
-        if (radio->channel <= -1) {
-          if (gSettings.crossBandScan) {
-            scanlistByKey(key);
-            // selectFirstPresetFromScanlist();
-          } else {
-            // RADIO_SelectPresetSave(key + 6);
-          }
-        } else {
-          scanlistByKey(key);
-          // initChannelScan();
-          SETTINGS_DelayedSave();
-        }
+        // if (radio->channel <= -1) {
+        //   if (gSettings.crossBandScan) {
+        //     scanlistByKey(key);
+        //     // selectFirstPresetFromScanlist();
+        //   } else {
+        //     // RADIO_SelectPresetSave(key + 6);
+        //   }
+        // } else {
+        //   scanlistByKey(key);
+        //   // initChannelScan();
+        //   SETTINGS_DelayedSave();
+        // }
       } else {
         gFInputCallback = tuneTo;
         APPS_run(APP_FINPUT);
@@ -351,14 +351,12 @@ void VFO1_render(void) {
   const char *mod =
       modulationTypeOptions[vfo->modulation];
   if (gIsListening) {
-    // UI_RSSIBar(gLoot[gSettings.activeVFO].rssi, RADIO_GetS(), vfo->rx.f,
-    //            BASE + 2);
+    UI_RSSIBar(gVFO[gSettings.activeVFO].rssi, RADIO_GetS(), vfo->rx.f,
+               BASE + 2);
   }
 
-  if (radio->channel >= 0) {
     PrintMediumEx(LCD_XCENTER, BASE - 16, POS_C, C_FILL,
                   gVFONames[gSettings.activeVFO]);
-  }
 
   if (gTxState && gTxState != TX_ON) {
     PrintMediumBoldEx(LCD_XCENTER, BASE, POS_C, C_FILL, "%s",

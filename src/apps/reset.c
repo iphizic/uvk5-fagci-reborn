@@ -1,4 +1,5 @@
 #include "reset.h"
+#include "../radio.h"
 #include "../driver/eeprom.h"
 #include "../driver/st7565.h"
 // #include "../helper/channels.h"
@@ -22,15 +23,15 @@ static EEPROMType eepromType;
 static VFO defaultVFOs[2] = {
     (VFO){
         .rx.f = 14550000,
-        .channel = -1,
         .modulation = MOD_FM,
         .radio = RADIO_UNKNOWN,
+        .step = STEP_1_0kHz,
     },
     (VFO){
         .rx.f = 43307500,
-        .channel = -1,
         .modulation = MOD_FM,
         .radio = RADIO_UNKNOWN,
+        .step = STEP_1_0kHz,
     },
 };
 

@@ -67,12 +67,12 @@ void SP_Next(void) {
   // TODO: remove
 }
 
-void SP_Init(Band *b) {
-  range = &b->bounds;
-  step = StepFrequencyTable[b->step];
-  SP_ResetHistory();
-  SP_Begin();
-}
+// void SP_Init(Band *b) {
+//   range = &b->bounds;
+//   step = StepFrequencyTable[b->step];
+//   SP_ResetHistory();
+//   SP_Begin();
+// }
 
 #include "../driver/uart.h"
 // void SP_AddPoint(const Loot *msm) {

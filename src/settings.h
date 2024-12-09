@@ -184,37 +184,44 @@ typedef struct {
 // getsize(CH)
 
 typedef struct {
-  F rx;
-  F tx;
-  int16_t channel;
-  ModulationType modulation : 4;
-  TXOutputPower power : 2;
-  Radio radio : 2;
-} __attribute__((packed)) VFO;
-// getsize(VFO)
-
-typedef struct {
   uint32_t start : 27;
   uint32_t end : 27;
 } __attribute__((packed)) FRange;
 
-typedef struct {
-  FRange bounds;
-  char name[10];
-  Step step : 4;
-  ModulationType modulation : 4;
-  BK4819_FilterBandwidth_t bw : 2;
-  SquelchType squelchType : 2;
-  uint8_t squelch : 4;
-  uint8_t gainIndex : 5;
-  uint8_t reserved1 : 3;
-} __attribute__((packed)) Band;
+// typedef struct {
+//   FRange bounds;
+//   char name[10];
+//   Step step : 4;
+//   ModulationType modulation : 4;
+//   BK4819_FilterBandwidth_t bw : 2;
+//   SquelchType squelchType : 2;
+//   uint8_t squelch : 4;
+//   uint8_t gainIndex : 5;
+//   uint8_t reserved1 : 3;
+// } __attribute__((packed)) Band;
 
 typedef struct {
   uint8_t s : 8;
   uint8_t m : 8;
   uint8_t e : 8;
 } __attribute__((packed)) PowerCalibration;
+
+typedef struct {
+  F rx;
+  F tx;
+  ModulationType modulation : 4;
+  TXOutputPower power : 2;
+  Radio radio : 2;
+  PowerCalibration powCalib;
+  Step step : 4;
+  BK4819_FilterBandwidth_t bw : 2;
+  SquelchType squelchType : 2;
+  OffsetDirection offsetDir : 2;
+  uint8_t squelch : 4;
+  uint8_t gainIndex : 5;
+  uint16_t rssi;
+} __attribute__((packed)) VFO;
+// getsize(VFO)
 
 // typedef struct {
 //   PowerCalibration powCalib;

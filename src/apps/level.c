@@ -17,7 +17,7 @@ static uint32_t lastUpdate = 0;
 void LEVEL_update(void) {
   if (Now() - lastUpdate > 50) {
     lastUpdate = Now();
-    // msm.rssi = RADIO_GetRSSI();
+    radio->rssi = RADIO_GetRSSI();
     SP_Shift(-1);
     // SP_AddGraphPoint(&msm);
     gRedrawScreen = true;

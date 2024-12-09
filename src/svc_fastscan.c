@@ -56,10 +56,9 @@ static void switchBand() {
 }
 
 void SVC_FC_Update(void) {
-  // if (gIsListening ||
-  //     (gLastActiveLoot && Now() - gLastActiveLoot->lastTimeOpen < 500)) {
-  //   return;
-  // }
+  if (gIsListening) {
+    return;
+  }
 
   if (Now() - lastSwitch >= 700) {
     switchBand();
