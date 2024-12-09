@@ -1,7 +1,7 @@
 #include "svc_fastscan.h"
 #include "driver/bk4819.h"
 #include "driver/st7565.h"
-#include "helper/lootlist.h"
+// #include "helper/lootlist.h"
 #include "radio.h"
 #include "scheduler.h"
 #include "settings.h"
@@ -44,8 +44,8 @@ static void gotF(uint32_t f) {
   RADIO_TuneTo(f);
   RADIO_ToggleRX(true);
 
-  Loot msm = {.f = f, .open = true};
-  LOOT_Update(&msm);
+  // Loot msm = {.f = f, .open = true};
+  // LOOT_Update(&msm);
   gRedrawScreen = true;
 }
 
@@ -56,10 +56,10 @@ static void switchBand() {
 }
 
 void SVC_FC_Update(void) {
-  if (gIsListening ||
-      (gLastActiveLoot && Now() - gLastActiveLoot->lastTimeOpen < 500)) {
-    return;
-  }
+  // if (gIsListening ||
+  //     (gLastActiveLoot && Now() - gLastActiveLoot->lastTimeOpen < 500)) {
+  //   return;
+  // }
 
   if (Now() - lastSwitch >= 700) {
     switchBand();
@@ -89,10 +89,10 @@ void SVC_FC_Update(void) {
     return;
   }
 
-  Loot *loot = LOOT_Get(f);
-  if (loot && (loot->blacklist || loot->whitelist)) {
-    return;
-  }
+  // Loot *loot = LOOT_Get(f);
+  // if (loot && (loot->blacklist || loot->whitelist)) {
+  //   return;
+  // }
 
   if (delta(f, scanF) < 100) {
     gotF(f);

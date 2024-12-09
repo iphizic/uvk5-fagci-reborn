@@ -1,11 +1,11 @@
 #include "vfo1.h"
 #include "../apps/textinput.h"
 #include "../driver/bk4819.h"
-#include "../helper/channels.h"
-#include "../helper/lootlist.h"
+// #include "../helper/channels.h"
+// #include "../helper/lootlist.h"
 #include "../helper/measurements.h"
 #include "../helper/numnav.h"
-#include "../helper/presetlist.h"
+// #include "../helper/presetlist.h"
 #include "../radio.h"
 #include "../scheduler.h"
 #include "../svc.h"
@@ -16,7 +16,7 @@
 #include "apps.h"
 #include "finput.h"
 
-static void setChannel(uint16_t v) { RADIO_TuneToCH(v - 1); }
+// static void setChannel(uint16_t v) { RADIO_TuneToCH(v - 1); }
 static void tuneTo(uint32_t f) { RADIO_TuneToSave(GetTuneF(f)); }
 
 static bool SSB_Seek_ON = false;
@@ -35,9 +35,9 @@ static void sendDtmf() {
 }
 
 static void channelScanFn(bool forward) {
-  IncDecI32(&scanIndex, 0, gScanlistSize, forward ? 1 : -1);
-  int32_t chNum = gScanlist[scanIndex];
-  radio->channel = chNum;
+  // IncDecI32(&scanIndex, 0, gScanlistSize, forward ? 1 : -1);
+  // int32_t chNum = gScanlist[scanIndex];
+  // radio->channel = chNum;
   RADIO_VfoLoadCH(gSettings.activeVFO);
   RADIO_SetupByCurrentVFO();
 }
@@ -68,56 +68,56 @@ void VFO1_update(void) {
   }
 }
 
-static void prepareABScan() {
-  const uint32_t F1 = gVFO[0].rx.f;
-  const uint32_t F2 = gVFO[1].rx.f;
-  FRange *b = &defaultPreset.band.bounds;
+// static void prepareABScan() {
+//   const uint32_t F1 = gVFO[0].rx.f;
+//   const uint32_t F2 = gVFO[1].rx.f;
+//   FRange *b = &defaultPreset.band.bounds;
+//
+//   if (F1 < F2) {
+//     b->start = F1;
+//     b->end = F2;
+//   } else {
+//     b->start = F2;
+//     b->end = F1;
+//   }
+//   sprintf(defaultPreset.band.name, "%u-%u", b->start / MHZ, b->end / MHZ);
+//   gCurrentPreset = &defaultPreset;
+//   defaultPreset.lastUsedFreq = radio->rx.f;
+//   gSettings.crossBandScan = false;
+//   RADIO_TuneToPure(b->start, true);
+// }
+//
+// static void initChannelScan() {
+//   scanIndex = 0;
+//   LOOT_Clear();
+//   CHANNELS_LoadScanlist(gSettings.currentScanlist);
+//   if (gScanlistSize == 0) {
+//     gSettings.currentScanlist = 15;
+//     CHANNELS_LoadScanlist(gSettings.currentScanlist);
+//     SETTINGS_DelayedSave();
+//   }
+//   for (uint16_t i = 0; i < gScanlistSize; ++i) {
+//     CH ch;
+//     int32_t num = gScanlist[i];
+//     CHANNELS_Load(num, &ch);
+//     Loot *loot = LOOT_AddEx(ch.rx.f, true);
+//     loot->open = false;
+//     loot->lastTimeOpen = 0;
+//   }
+//
+//   gScanFn = channelScanFn;
+// }
 
-  if (F1 < F2) {
-    b->start = F1;
-    b->end = F2;
-  } else {
-    b->start = F2;
-    b->end = F1;
-  }
-  sprintf(defaultPreset.band.name, "%u-%u", b->start / MHZ, b->end / MHZ);
-  gCurrentPreset = &defaultPreset;
-  defaultPreset.lastUsedFreq = radio->rx.f;
-  gSettings.crossBandScan = false;
-  RADIO_TuneToPure(b->start, true);
-}
-
-static void initChannelScan() {
-  scanIndex = 0;
-  LOOT_Clear();
-  CHANNELS_LoadScanlist(gSettings.currentScanlist);
-  if (gScanlistSize == 0) {
-    gSettings.currentScanlist = 15;
-    CHANNELS_LoadScanlist(gSettings.currentScanlist);
-    SETTINGS_DelayedSave();
-  }
-  for (uint16_t i = 0; i < gScanlistSize; ++i) {
-    CH ch;
-    int32_t num = gScanlist[i];
-    CHANNELS_Load(num, &ch);
-    Loot *loot = LOOT_AddEx(ch.rx.f, true);
-    loot->open = false;
-    loot->lastTimeOpen = 0;
-  }
-
-  gScanFn = channelScanFn;
-}
-
-static void startScan() {
-  if (radio->channel >= 0) {
-    initChannelScan();
-  }
-  if (radio->channel >= 0 && gScanlistSize == 0) {
-    SVC_Toggle(SVC_SCAN, false, 0);
-    return;
-  }
-  SVC_Toggle(SVC_SCAN, true, gSettings.scanTimeout);
-}
+// static void startScan() {
+//   if (radio->channel >= 0) {
+//     initChannelScan();
+//   }
+//   if (radio->channel >= 0 && gScanlistSize == 0) {
+//     SVC_Toggle(SVC_SCAN, false, 0);
+//     return;
+//   }
+//   SVC_Toggle(SVC_SCAN, true, gSettings.scanTimeout);
+// }
 
 static void scanlistByKey(KEY_Code_t key) {
   if (key >= KEY_1 && key <= KEY_8) {
@@ -127,25 +127,25 @@ static void scanlistByKey(KEY_Code_t key) {
   }
 }
 
-static void selectFirstPresetFromScanlist() {
-  uint8_t sl = gSettings.currentScanlist;
-  uint8_t scanlistMask = 1 << sl;
-  for (uint8_t i = 0; i < PRESETS_COUNT; ++i) {
-    if (sl == 15 ||
-        (PRESETS_Item(i)->memoryBanks & scanlistMask) == scanlistMask) {
-      PRESET_Select(i);
-      RADIO_TuneTo(gCurrentPreset->band.bounds.start);
-      return;
-    }
-  }
-}
+// static void selectFirstPresetFromScanlist() {
+//   uint8_t sl = gSettings.currentScanlist;
+//   uint8_t scanlistMask = 1 << sl;
+//   for (uint8_t i = 0; i < PRESETS_COUNT; ++i) {
+//     if (sl == 15 ||
+//         (PRESETS_Item(i)->memoryBanks & scanlistMask) == scanlistMask) {
+//       PRESET_Select(i);
+//       RADIO_TuneTo(gCurrentPreset->band.bounds.start);
+//       return;
+//     }
+//   }
+// }
 
 bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (!SVC_Running(SVC_SCAN) && !bKeyPressed && !bKeyHeld &&
       radio->channel >= 0) {
     if (!gIsNumNavInput && key <= KEY_9) {
-      NUMNAV_Init(radio->channel + 1, 1, CHANNELS_GetCountMax());
-      gNumNavCallback = setChannel;
+      NUMNAV_Init(radio->channel + 1, 1, 1000);
+      // gNumNavCallback = setChannel;
     }
     if (gIsNumNavInput) {
       NUMNAV_Input(key);
@@ -200,17 +200,17 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
 
   // long held
   if (bKeyHeld && bKeyPressed && !gRepeatHeld) {
-    OffsetDirection offsetDirection = gCurrentPreset->offsetDir;
+    // OffsetDirection offsetDirection = gCurrentPreset->offsetDir;
     switch (key) {
     case KEY_EXIT:
-      prepareABScan();
-      startScan();
+      // prepareABScan();
+      // startScan();
       return true;
     case KEY_1:
-      APPS_run(APP_PRESETS_LIST);
+      // APPS_run(APP_PRESETS_LIST);
       return true;
     case KEY_3:
-      RADIO_ToggleVfoMR();
+      // RADIO_ToggleVfoMR();
       return true;
     case KEY_4: // freq catch
       if (RADIO_GetRadio() == RADIO_BK4819) {
@@ -229,8 +229,8 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       RADIO_UpdateStep(true);
       return true;
     case KEY_8:
-      IncDec8(&offsetDirection, 0, OFFSET_MINUS, 1);
-      gCurrentPreset->offsetDir = offsetDirection;
+      // IncDec8(&offsetDirection, 0, OFFSET_MINUS, 1);
+      // gCurrentPreset->offsetDir = offsetDirection;
       return true;
     case KEY_9: // call
       gTextInputSize = 15;
@@ -246,17 +246,17 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
         SSB_Seek_ON = true;
         // todo: scan by snr
       } else {
-        if (gSettings.crossBandScan && radio->channel <= -1) {
-          selectFirstPresetFromScanlist();
-        }
-        startScan();
+        // if (gSettings.crossBandScan && radio->channel <= -1) {
+        //   selectFirstPresetFromScanlist();
+        // }
+        // startScan();
       }
       return true;
     case KEY_SIDE1:
-      APPS_run(APP_ANALYZER);
+      // APPS_run(APP_ANALYZER);
       return true;
     case KEY_SIDE2:
-      APPS_run(APP_SPECTRUM);
+      // APPS_run(APP_SPECTRUM);
       return true;
     default:
       break;
@@ -280,13 +280,13 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
         if (radio->channel <= -1) {
           if (gSettings.crossBandScan) {
             scanlistByKey(key);
-            selectFirstPresetFromScanlist();
+            // selectFirstPresetFromScanlist();
           } else {
-            RADIO_SelectPresetSave(key + 6);
+            // RADIO_SelectPresetSave(key + 6);
           }
         } else {
           scanlistByKey(key);
-          initChannelScan();
+          // initChannelScan();
           SETTINGS_DelayedSave();
         }
       } else {
@@ -299,11 +299,11 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       APPS_run(APP_VFO_CFG);
       return true;
     case KEY_STAR:
-      APPS_run(APP_LOOT_LIST);
+      // APPS_run(APP_LOOT_LIST);
       return true;
     case KEY_SIDE1:
       if (SVC_Running(SVC_SCAN)) {
-        LOOT_BlacklistLast();
+        // LOOT_BlacklistLast();
         RADIO_NextFreqNoClicks(true);
         return true;
       }
@@ -311,7 +311,7 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       return true;
     case KEY_SIDE2:
       if (SVC_Running(SVC_SCAN)) {
-        LOOT_WhitelistLast();
+        // LOOT_WhitelistLast();
         RADIO_NextFreqNoClicks(true);
         return true;
       }
@@ -327,7 +327,7 @@ bool VFO1_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       }
       if (!APPS_exit()) {
         SVC_Toggle(SVC_SCAN, false, 0);
-        LOOT_Standby();
+        // LOOT_Standby();
         RADIO_NextVFO();
       }
       return true;
@@ -342,7 +342,7 @@ void VFO1_render(void) {
   const uint8_t BASE = 38;
 
   VFO *vfo = &gVFO[gSettings.activeVFO];
-  Preset *p = gVFOPresets[gSettings.activeVFO];
+  // Preset *p = gVFOPresets[gSettings.activeVFO];
   uint32_t f = gTxState == TX_ON ? RADIO_GetTXF() : GetScreenF(vfo->rx.f);
 
   uint16_t fp1 = f / MHZ;
@@ -351,8 +351,8 @@ void VFO1_render(void) {
   const char *mod =
       modulationTypeOptions[vfo->modulation];
   if (gIsListening) {
-    UI_RSSIBar(gLoot[gSettings.activeVFO].rssi, RADIO_GetS(), vfo->rx.f,
-               BASE + 2);
+    // UI_RSSIBar(gLoot[gSettings.activeVFO].rssi, RADIO_GetS(), vfo->rx.f,
+    //            BASE + 2);
   }
 
   if (radio->channel >= 0) {

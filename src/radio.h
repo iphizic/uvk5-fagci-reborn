@@ -2,7 +2,6 @@
 #define RADIO_H
 
 #include "driver/bk4819.h"
-#include "helper/lootlist.h"
 #include "settings.h"
 #include <stdbool.h>
 #include <stdint.h>
@@ -19,9 +18,9 @@ typedef enum {
 
 extern VFO *radio;
 extern VFO gVFO[2];
-extern Preset *gVFOPresets[2];
+// extern Preset *gVFOPresets[2];
 
-extern Loot gLoot[2];
+// extern Loot gLoot[2];
 
 extern char gVFONames[2][10];
 
@@ -59,20 +58,20 @@ void RADIO_ToggleTX(bool on);
 void RADIO_ToggleTXEX(bool on, uint32_t txF, uint8_t power, bool paEnabled);
 
 void RADIO_TuneTo(uint32_t f);
-bool RADIO_TuneToCH(int32_t num);
+// bool RADIO_TuneToCH(int32_t num);
 void RADIO_TuneToPure(uint32_t f, bool precise);
 void RADIO_TuneToSave(uint32_t f);
-void RADIO_SelectPresetSave(int8_t num);
+// void RADIO_SelectPresetSave(int8_t num);
 void RADIO_SetupBandParams();
 
 void RADIO_VfoLoadCH(uint8_t i);
 void RADIO_SetupByCurrentVFO();
 void RADIO_NextVFO(void);
-void RADIO_NextCH(bool next);
+// void RADIO_NextCH(bool next);
 void RADIO_NextFreqNoClicks(bool next);
-bool RADIO_NextPresetFreqXBandEx(bool next, bool tune, bool precise);
-void RADIO_NextPresetFreqXBand(bool next);
-void RADIO_ToggleVfoMR();
+// bool RADIO_NextPresetFreqXBandEx(bool next, bool tune, bool precise);
+// void RADIO_NextPresetFreqXBand(bool next);
+// void RADIO_ToggleVfoMR();
 
 void RADIO_SetSquelchPure(uint32_t f, uint8_t sql);
 void RADIO_SetSquelch(uint8_t sq);
@@ -91,11 +90,11 @@ uint16_t RADIO_GetRSSI(void);
 uint16_t RADIO_GetSNR(void);
 uint16_t RADIO_GetS();
 uint32_t RADIO_GetTXF(void);
-uint32_t RADIO_GetTXFEx(VFO *vfo, Preset *p);
+uint32_t RADIO_GetTXFEx(VFO *vfo);
 void RADIO_ToggleBK1080(bool on);
 ModulationType getNextModulation(bool next);
 
-Loot *RADIO_UpdateMeasurements();
-bool RADIO_UpdateMeasurementsEx(Loot *dest);
+// Loot *RADIO_UpdateMeasurements();
+// bool RADIO_UpdateMeasurementsEx(Loot *dest);
 
 #endif /* end of include guard: RADIO_H */

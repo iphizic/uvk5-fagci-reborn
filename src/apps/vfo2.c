@@ -1,8 +1,8 @@
 #include "vfo2.h"
 #include "../dcs.h"
-#include "../helper/lootlist.h"
+// #include "../helper/lootlist.h"
 #include "../helper/numnav.h"
-#include "../helper/presetlist.h"
+// #include "../helper/presetlist.h"
 #include "../misc.h"
 #include "../scheduler.h"
 #include "../settings.h"
@@ -15,10 +15,10 @@ static void render2VFOPart(uint8_t i) {
   const uint8_t BASE = 22;
   const uint8_t bl = BASE + 34 * i;
 
-  Preset *p = gVFOPresets[i];
+  // Preset *p = gVFOPresets[i];
   VFO *vfo = &gVFO[i];
   const bool isActive = gSettings.activeVFO == i;
-  const Loot *loot = &gLoot[i];
+  // const Loot *loot = &gLoot[i];
 
   uint32_t f =
       gTxState == TX_ON && isActive ? RADIO_GetTXF() : GetScreenF(vfo->rx.f);
@@ -28,7 +28,7 @@ static void render2VFOPart(uint8_t i) {
   const uint8_t fp3 = f % 100;
   const char *mod =
       modulationTypeOptions[vfo->modulation];
-  const uint32_t step = StepFrequencyTable[p->band.step];
+  // const uint32_t step = StepFrequencyTable[p->band.step];
 
   if (isActive && gTxState <= TX_ON) {
     FillRect(0, bl - 14, 28, 7, C_FILL);
@@ -40,7 +40,7 @@ static void render2VFOPart(uint8_t i) {
   if (gIsListening && ((gSettings.dw != DW_OFF && gDW.activityOnVFO == i) ||
                        (gSettings.dw == DW_OFF && isActive))) {
     PrintMedium(0, bl, "RX");
-    UI_RSSIBar(gLoot[i].rssi, RADIO_GetS(), f, 31);
+    // UI_RSSIBar(gLoot[i].rssi, RADIO_GetS(), f, 31);
   }
 
   if (gSettings.dw != DW_OFF && gDW.lastActiveVFO == i) {
@@ -73,30 +73,30 @@ static void render2VFOPart(uint8_t i) {
 
   Radio r = vfo->radio == RADIO_UNKNOWN ? RADIO_Selector(vfo->rx.f, vfo->modulation) : vfo->radio ;
 
-  uint32_t est = loot->lastTimeOpen ? (Now() - loot->lastTimeOpen) / 1000 : 0;
-  if (r == RADIO_BK4819) {
-    if (loot->ct != 0xFF) {
-      PrintSmallEx(0, bl + 6, POS_L, C_FILL, "CT %u.%u",
-                   CTCSS_Options[loot->ct] / 10, CTCSS_Options[loot->ct] % 10);
-    } else if (loot->cd != 0xFF) {
-      PrintSmallEx(0, bl + 6, POS_L, C_FILL, "D%03oN", DCS_Options[loot->cd]);
-    }
-  }
-  PrintSmallEx(LCD_XCENTER, bl + 6, POS_C, C_FILL, "%c %c SQ%u %c %s %s",
-               p->allowTx ? TX_POWER_NAMES[p->power][0] : ' ',
-               "wNnW"[p->band.bw], p -> band.squelch,
-               RADIO_GetTXFEx(vfo, p) != vfo->rx.f
-                   ? (p->offsetDir ? TX_OFFSET_NAMES[p->offsetDir][0] : '*')
-                   : ' ',
-               vfo->tx.codeType ? TX_CODE_TYPES[vfo->tx.codeType] : "",
-               shortRadioNames[r]);
+  // uint32_t est = loot->lastTimeOpen ? (Now() - loot->lastTimeOpen) / 1000 : 0;
+  // if (r == RADIO_BK4819) {
+  //   if (loot->ct != 0xFF) {
+  //     PrintSmallEx(0, bl + 6, POS_L, C_FILL, "CT %u.%u",
+  //                  CTCSS_Options[loot->ct] / 10, CTCSS_Options[loot->ct] % 10);
+  //   } else if (loot->cd != 0xFF) {
+  //     PrintSmallEx(0, bl + 6, POS_L, C_FILL, "D%03oN", DCS_Options[loot->cd]);
+  //   }
+  // }
+  // PrintSmallEx(LCD_XCENTER, bl + 6, POS_C, C_FILL, "%c %c SQ%u %c %s %s",
+  //              p->allowTx ? TX_POWER_NAMES[p->power][0] : ' ',
+  //              "wNnW"[p->band.bw], p -> band.squelch,
+  //              RADIO_GetTXFEx(vfo, p) != vfo->rx.f
+  //                  ? (p->offsetDir ? TX_OFFSET_NAMES[p->offsetDir][0] : '*')
+  //                  : ' ',
+  //              vfo->tx.codeType ? TX_CODE_TYPES[vfo->tx.codeType] : "",
+  //              shortRadioNames[r]);
 
   /* if (loot->lastTimeOpen) {
     PrintSmallEx(LCD_WIDTH, bl + 6, POS_R, C_FILL, "%02u:%02u %us", est / 60,
                  est % 60, loot->duration / 1000);
   } else { */
-    PrintSmallEx(LCD_WIDTH, bl + 6, POS_R, C_FILL, "%d.%02dk", step / 100,
-                 step % 100);
+    // PrintSmallEx(LCD_WIDTH, bl + 6, POS_R, C_FILL, "%d.%02dk", step / 100,
+    //              step % 100);
   // }
 }
 
@@ -109,7 +109,7 @@ bool VFO2_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
   if (bKeyHeld && bKeyPressed && !gRepeatHeld) {
     switch (key) {
     case KEY_2:
-      LOOT_Standby();
+      // LOOT_Standby();
       RADIO_NextVFO();
       return true;
     default:
@@ -126,8 +126,8 @@ void VFO2_render(void) {
   if (gIsNumNavInput) {
     STATUSLINE_SetText("Select: %s", gNumNavInput);
   } else {
-    STATUSLINE_SetText("%s:%u", gCurrentPreset->band.name,
-                       PRESETS_GetChannel(gCurrentPreset, radio->rx.f) + 1);
+    // STATUSLINE_SetText("%s:%u", gCurrentPreset->band.name,
+    //                    PRESETS_GetChannel(gCurrentPreset, radio->rx.f) + 1);
   }
 
   render2VFOPart(0);
