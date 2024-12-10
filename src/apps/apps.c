@@ -59,11 +59,11 @@ const AppType_t appsAvailableToRun[RUN_APPS_COUNT] = {
     APP_VFO1,         //
     APP_VFOPRO,       //
     APP_VFO2,         //
-    APP_SAVECH,       //
-    APP_SPECTRUM,     //
-    APP_ANALYZER,     //
-    APP_LOOT_LIST,    //
-    APP_PRESETS_LIST, //
+    // APP_SAVECH,       //
+    // APP_SPECTRUM,     //
+    // APP_ANALYZER,     //
+    // APP_LOOT_LIST,    //
+    // APP_PRESETS_LIST, //
     APP_MEMVIEW,      //
     APP_GENERATOR,    //
     // APP_LEVEL,        //
@@ -73,24 +73,24 @@ const AppType_t appsAvailableToRun[RUN_APPS_COUNT] = {
 const App apps[APPS_COUNT] = {
     {"None", NULL, NULL, NULL, NULL, NULL},
     {"EEPROM view", MEMVIEW_Init, NULL, MEMVIEW_Render, MEMVIEW_key, NULL},
-    {"Band scan", SPECTRUM_init, SPECTRUM_update, SPECTRUM_render, SPECTRUM_key,
-     SPECTRUM_deinit},
-    {"Analyzer", ANALYZER_init, ANALYZER_update, ANALYZER_render, ANALYZER_key,
-     ANALYZER_deinit},
-    {"Channels", SAVECH_init, SAVECH_update, SAVECH_render, SAVECH_key, NULL},
+    // {"Band scan", SPECTRUM_init, SPECTRUM_update, SPECTRUM_render, SPECTRUM_key,
+    //  SPECTRUM_deinit},
+    // {"Analyzer", ANALYZER_init, ANALYZER_update, ANALYZER_render, ANALYZER_key,
+    //  ANALYZER_deinit},
+    // {"Channels", SAVECH_init, SAVECH_update, SAVECH_render, SAVECH_key, NULL},
     {"1 VFO pro", VFOPRO_init, VFOPRO_update, VFOPRO_render, VFOPRO_key,
      VFOPRO_deinit},
     {"Freq input", FINPUT_init, NULL, FINPUT_render, FINPUT_key, FINPUT_deinit},
     {"Run app", APPSLIST_init, NULL, APPSLIST_render, APPSLIST_key, NULL},
-    {"Loot", LOOTLIST_init, LOOTLIST_update, LOOTLIST_render, LOOTLIST_key,
-     NULL},
-    {"Presets", PRESETLIST_init, NULL, PRESETLIST_render, PRESETLIST_key, NULL},
+    // {"Loot", LOOTLIST_init, LOOTLIST_update, LOOTLIST_render, LOOTLIST_key,
+    //  NULL},
+    // {"Presets", PRESETLIST_init, NULL, PRESETLIST_render, PRESETLIST_key, NULL},
     {"Reset", RESET_Init, RESET_Update, RESET_Render, RESET_key, NULL},
     {"Text input", TEXTINPUT_init, NULL, TEXTINPUT_render, TEXTINPUT_key,
      TEXTINPUT_deinit},
     {"VFO cfg", VFOCFG_init, VFOCFG_update, VFOCFG_render, VFOCFG_key, NULL},
-    {"Preset cfg", PRESETCFG_init, PRESETCFG_update, PRESETCFG_render,
-     PRESETCFG_key, NULL},
+    // {"Preset cfg", PRESETCFG_init, PRESETCFG_update, PRESETCFG_render,
+    //  PRESETCFG_key, NULL},
     {"Settings", SETTINGS_init, NULL, SETTINGS_render, SETTINGS_key, NULL},
     {"1 VFO", VFO1_init, VFO1_update, VFO1_render, VFO1_key, NULL},
     {"2 VFO", VFO1_init, VFO2_update, VFO2_render, VFO2_key, NULL},
