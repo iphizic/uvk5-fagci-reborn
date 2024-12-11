@@ -139,10 +139,10 @@ bool VFOPRO_key(KEY_Code_t key, bool bKeyPressed, bool bKeyHeld) {
       RADIO_UpdateStep(false);
       return true;
     case KEY_3:
-      // RADIO_UpdateSquelchLevel(true);
+      RADIO_UpdateSquelchLevel(true);
       return true;
     case KEY_9:
-      // RADIO_UpdateSquelchLevel(false);
+      RADIO_UpdateSquelchLevel(false);
       return true;
     case KEY_0:
       RADIO_ToggleModulation();
@@ -236,12 +236,12 @@ static void DrawRegs(void) {
     }
 
     if (rs.num == BK4819_REG_13) {
-      // if (gCurrentPreset->band.gainIndex == 18) {
-      //   sprintf(String, "auto");
-      // } else {
-      //   sprintf(String, "%ddB",
-      //           gainTable[gCurrentPreset->band.gainIndex].gainDb);
-      // }
+      if (radio->gainIndex == 18) {
+        sprintf(String, "auto");
+      } else {
+        sprintf(String, "%ddB",
+                gainTable[radio->gainIndex].gainDb);
+      }
     } else if (rs.num == 0x73) {
       uint8_t afc = BK4819_GetAFC();
       if (afc) {
@@ -261,7 +261,7 @@ static void DrawRegs(void) {
 void VFOPRO_render(void) {
   // STATUSLINE_SetText(gCurrentPreset->band.name);
   UI_FSmall(gTxState == TX_ON ? RADIO_GetTXF() : GetScreenF(radio->rx.f));
-  // UI_RSSIBar(gLoot[gSettings.activeVFO].rssi, RADIO_GetS(), radio->rx.f, 23);
+  UI_RSSIBar(gVFO[gSettings.activeVFO].rssi, RADIO_GetS(), radio->rx.f, 23);
 
   if (RADIO_GetRadio() == RADIO_BK4819) {
     DrawRegs();

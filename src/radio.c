@@ -237,52 +237,52 @@ static bool isSimpleSql() {
 }
 
 static bool isSqOpenSimple(uint16_t r) {
-  // const uint8_t band = radio->rx.f > SETTINGS_GetFilterBound() ? 1 : 0;
-  // // const uint8_t sq = gCurrentPreset->band.squelch;
-  // const uint16_t ro = SQ[band][0][sq];
-  // const uint16_t rc = SQ[band][1][sq];
-  // const uint8_t no = SQ[band][2][sq];
-  // const uint8_t nc = SQ[band][3][sq];
-  // const uint8_t go = SQ[band][4][sq];
-  // const uint8_t gc = SQ[band][5][sq];
-  //
-  // uint8_t n, g;
-  //
-  // bool open;
+  const uint8_t band = radio->rx.f > SETTINGS_GetFilterBound() ? 1 : 0;
+  const uint8_t sq = radio->squelch;
+  const uint16_t ro = SQ[band][0][sq];
+  const uint16_t rc = SQ[band][1][sq];
+  const uint8_t no = SQ[band][2][sq];
+  const uint8_t nc = SQ[band][3][sq];
+  const uint8_t go = SQ[band][4][sq];
+  const uint8_t gc = SQ[band][5][sq];
 
-  // switch (gCurrentPreset->band.squelchType) {
-  // case SQUELCH_RSSI_NOISE_GLITCH:
-  //   n = BK4819_GetNoise();
-  //   g = BK4819_GetGlitch();
-  //   open = r >= ro && n <= no && g <= go;
-  //   if (r < rc || n > nc || g > gc) {
-  //     open = false;
-  //   }
-  //   break;
-  // case SQUELCH_RSSI_NOISE:
-  //   n = BK4819_GetNoise();
-  //   open = r >= ro && n <= no;
-  //   if (r < rc || n > nc) {
-  //     open = false;
-  //   }
-  //   break;
-  // case SQUELCH_RSSI_GLITCH:
-  //   g = BK4819_GetGlitch();
-  //   open = r >= ro && g <= go;
-  //   if (r < rc || g > gc) {
-  //     open = false;
-  //   }
-  //   break;
-  // case SQUELCH_RSSI:
-  //   open = r >= ro;
-  //   if (r < rc) {
-  //     open = false;
-  //   }
-  //   break;
-  // }
+  uint8_t n, g;
 
-  // return open;
-  return false;
+  bool open;
+
+  switch (radio->squelchType) {
+  case SQUELCH_RSSI_NOISE_GLITCH:
+    n = BK4819_GetNoise();
+    g = BK4819_GetGlitch();
+    open = r >= ro && n <= no && g <= go;
+    if (r < rc || n > nc || g > gc) {
+      open = false;
+    }
+    break;
+  case SQUELCH_RSSI_NOISE:
+    n = BK4819_GetNoise();
+    open = r >= ro && n <= no;
+    if (r < rc || n > nc) {
+      open = false;
+    }
+    break;
+  case SQUELCH_RSSI_GLITCH:
+    g = BK4819_GetGlitch();
+    open = r >= ro && g <= go;
+    if (r < rc || g > gc) {
+      open = false;
+    }
+    break;
+  case SQUELCH_RSSI:
+    open = r >= ro;
+    if (r < rc) {
+      open = false;
+    }
+    break;
+  }
+
+  return open;
+  // return false;
 }
 
 static void toggleBK4819(bool on) {
@@ -621,7 +621,7 @@ void RADIO_TuneTo(uint32_t f) {
 void RADIO_TuneToSave(uint32_t f) {
   RADIO_TuneTo(f);
   RADIO_SaveCurrentVFO();
-  // gCurrentPreset->lastUsedFreq = f;
+  // radio->lastUsedFreq = f;
   // PRESETS_SaveCurrent();
 }
 
@@ -740,9 +740,9 @@ void RADIO_SetupBandParams() {
   default:
     break;
   }
-  // RADIO_SetGain(b->gainIndex);
+  RADIO_SetGain(radio->gainIndex);
   // Log("Set mod %s", modulationTypeOptions[mod]);
-  // RADIO_SetFilterBandwidth(b->bw);
+  RADIO_SetFilterBandwidth(radio->bw);
   // Log("RADIO_SetupBandParams end");
 }
 
@@ -794,16 +794,16 @@ uint16_t RADIO_GetS() {
   }
 }
 
-// bool RADIO_IsSquelchOpen(const Loot *msm) {
-//   if (RADIO_GetRadio() == RADIO_BK4819) {
-//     if (isSimpleSql()) {
-//       return isSqOpenSimple(msm->rssi);
-//     } else {
-//       return BK4819_IsSquelchOpen();
-//     }
-//   }
-//   return true;
-// }
+bool RADIO_IsSquelchOpen() {
+  if (RADIO_GetRadio() == RADIO_BK4819) {
+    if (isSimpleSql()) {
+      return isSqOpenSimple(radio->rssi);
+    } else {
+      return BK4819_IsSquelchOpen();
+    }
+  }
+  return true;
+}
 
 void RADIO_UpdateMeasurements(void) {
   if (RADIO_GetRadio() == RADIO_SI4732 && SVC_Running(SVC_SCAN)) {
@@ -818,6 +818,9 @@ void RADIO_UpdateMeasurements(void) {
   if (RADIO_GetRadio() != RADIO_BK4819 && Now() - lastMsmUpdate <= 1000) {
     return;
   }
+  lastMsmUpdate = Now();
+  radio->rssi = RADIO_GetRSSI();
+  radio->open = RADIO_IsSquelchOpen();
   if (radio->rx.codeType == CODE_TYPE_OFF) {
     toneFound = true;
   }
@@ -832,12 +835,14 @@ void RADIO_UpdateMeasurements(void) {
           (intBits & BK4819_REG_02_CTCSS_FOUND) ||
           (intBits & BK4819_REG_02_CDCSS_FOUND)) {
         // Log("Tail tone or ctcss/dcs found");
+        radio->open = false;
         toneFound = false;
         lastTailTone = Now();
       }
       if ((intBits & BK4819_REG_02_CTCSS_LOST) ||
           (intBits & BK4819_REG_02_CDCSS_LOST)) {
         // Log("ctcss/dcs lost");
+        radio->open = true;
         toneFound = true;
       }
 
@@ -847,14 +852,17 @@ void RADIO_UpdateMeasurements(void) {
       } */
     }
     // else sql reopens
+    if (!toneFound || (Now() - lastTailTone) < 250) {
+       radio->open = false;
+    }
   }
 
-  bool rx = true;
+  bool rx = radio->open;
   if (gTxState != TX_ON) {
     if (gMonitorMode) {
       rx = true;
     } else if (gSettings.noListen
-               // && (gCurrentApp == APP_SPECTRUM || gCurrentApp == APP_ANALYZER)
+               && (gCurrentApp == APP_SPECTRUM /*|| gCurrentApp == APP_ANALYZER*/)
     ){
       rx = false;
     } else if (gSettings.skipGarbageFrequencies &&
@@ -866,13 +874,44 @@ void RADIO_UpdateMeasurements(void) {
   }
 }
 
-// bool RADIO_UpdateMeasurementsEx(Loot *dest) {
-//   Loot *msm = &gLoot[gSettings.activeVFO];
-//   RADIO_UpdateMeasurements();
-//   LOOT_UpdateEx(dest, msm);
-//   return msm->open;
-// }
-//
+void UpdateEx() {
+
+  if (SVC_Running(SVC_SCAN) && !gMonitorMode) {
+    radio->open = false;
+  }
+
+  if (radio->open) {
+    uint32_t cd = 0;
+    uint16_t ct = 0;
+    uint8_t Code = 0;
+    BK4819_CssScanResult_t res = BK4819_GetCxCSSScanResult(&cd, &ct);
+    switch (res) {
+    case BK4819_CSS_RESULT_CDCSS:
+      Code = DCS_GetCdcssCode(cd);
+      if (Code != 0xFF) {
+        radio->cd = Code;
+      }
+      break;
+    case BK4819_CSS_RESULT_CTCSS:
+      Code = DCS_GetCtcssCode(ct);
+      if (Code != 0xFF) {
+        radio->ct = Code;
+      }
+      break;
+    default:
+      break;
+    }
+    radio->lastTimeOpen = Now();
+  }
+}
+
+bool RADIO_UpdateMeasurementsEx() {
+  VFO *msm = &gVFO[gSettings.activeVFO];
+  RADIO_UpdateMeasurements();
+  UpdateEx();
+  return msm->open;
+}
+
 // void RADIO_VfoLoadCH(uint8_t i) {
 //   CH ch;
 //   CHANNELS_Load(gVFO[i].channel, &ch);
@@ -918,11 +957,11 @@ void RADIO_NextVFO(void) {
 //   RADIO_SaveCurrentVFO();
 // }
 
-// void RADIO_UpdateSquelchLevel(bool next) {
-//   uint8_t sq = gCurrentPreset->band.squelch;
-//   IncDec8(&sq, 0, 10, next ? 1 : -1);
-//   RADIO_SetSquelch(sq);
-// }
+void RADIO_UpdateSquelchLevel(bool next) {
+  uint8_t sq = radio->squelch;
+  IncDec8(&sq, 0, 10, next ? 1 : -1);
+  RADIO_SetSquelch(sq);
+}
 
 void RADIO_NextFreqNoClicks(bool next) {
   const int8_t dir = next ? 1 : -1;
@@ -948,39 +987,25 @@ void RADIO_NextFreqNoClicks(bool next) {
 //   }
 // }
 
-// bool RADIO_NextPresetFreqXBandEx(bool next, bool tune, bool precise) {
-//   uint32_t steps = PRESETS_GetSteps(gCurrentPreset);
-//   int64_t step = PRESETS_GetChannel(gCurrentPreset, radio->rx.f);
-//   bool switchBand = false;
-//
-//   if (next) {
-//     step++;
-//   } else {
-//     step--;
-//   }
-//
-//   if (step < 0) {
-//     // get previous preset
-//     switchBand = true;
-//     selectPreset(false);
-//     steps = PRESETS_GetSteps(gCurrentPreset);
-//     step = steps - 1;
-//   } else if (step >= steps) {
-//     // get next preset
-//     switchBand = true;
-//     selectPreset(true);
-//     step = 0;
-//   }
-//   radio->rx.f = PRESETS_GetF(gCurrentPreset, step);
-//   if (tune) {
-//     RADIO_TuneToPure(radio->rx.f, precise);
-//   }
-//   return switchBand;
-// }
+bool RADIO_NextFreqXBandEx(bool next, bool tune, bool precise) {
+  int64_t step = radio->step;
+  bool switchBand = false;
 
-// void RADIO_NextPresetFreqXBand(bool next) {
-//   RADIO_NextPresetFreqXBandEx(next, true, true);
-// }
+  if (next) {
+    radio->rx.f+=step;
+  } else {
+    radio->rx.f-=step;
+  }
+
+  if (tune) {
+    RADIO_TuneToPure(radio->rx.f, precise);
+  }
+  return switchBand;
+}
+
+void RADIO_NextFreqXBand(bool next) {
+  RADIO_NextFreqXBandEx(next, true, true);
+}
 
 static ModulationType MODS_BK4819[] = {
     MOD_FM, MOD_AM, MOD_USB, MOD_BYP, MOD_RAW, MOD_WFM,

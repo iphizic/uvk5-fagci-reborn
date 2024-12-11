@@ -60,7 +60,7 @@ const AppType_t appsAvailableToRun[RUN_APPS_COUNT] = {
     APP_VFOPRO,       //
     APP_VFO2,         //
     // APP_SAVECH,       //
-    // APP_SPECTRUM,     //
+    APP_SPECTRUM,     //
     // APP_ANALYZER,     //
     // APP_LOOT_LIST,    //
     // APP_PRESETS_LIST, //
@@ -73,8 +73,8 @@ const AppType_t appsAvailableToRun[RUN_APPS_COUNT] = {
 const App apps[APPS_COUNT] = {
     {"None", NULL, NULL, NULL, NULL, NULL},
     {"EEPROM view", MEMVIEW_Init, NULL, MEMVIEW_Render, MEMVIEW_key, NULL},
-    // {"Band scan", SPECTRUM_init, SPECTRUM_update, SPECTRUM_render, SPECTRUM_key,
-    //  SPECTRUM_deinit},
+    {"Band scan", SPECTRUM_init, SPECTRUM_update, SPECTRUM_render, SPECTRUM_key,
+     SPECTRUM_deinit},
     // {"Analyzer", ANALYZER_init, ANALYZER_update, ANALYZER_render, ANALYZER_key,
     //  ANALYZER_deinit},
     // {"Channels", SAVECH_init, SAVECH_update, SAVECH_render, SAVECH_key, NULL},

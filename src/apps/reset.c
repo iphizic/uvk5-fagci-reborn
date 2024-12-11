@@ -26,12 +26,20 @@ static VFO defaultVFOs[2] = {
         .modulation = MOD_FM,
         .radio = RADIO_UNKNOWN,
         .step = STEP_1_0kHz,
+        .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+        .squelch = 3,
+        .gainIndex = 18,
+        .powCalib = {40, 65, 140},
     },
     (VFO){
         .rx.f = 43307500,
         .modulation = MOD_FM,
         .radio = RADIO_UNKNOWN,
         .step = STEP_1_0kHz,
+        .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+        .squelch = 3,
+        .gainIndex = 18,
+        .powCalib = {40, 65, 140},
     },
 };
 

@@ -68,16 +68,16 @@ static void setInitialSubmenuIndex(void) {
     subMenuIndex = radio->modulation;
     break;
   case M_STEP:
-    // subMenuIndex = gCurrentPreset->band.step;
+    subMenuIndex = radio->step;
     break;
   case M_SQ_TYPE:
-    // subMenuIndex = gCurrentPreset->band.squelchType;
+    subMenuIndex = radio->squelchType;
     break;
   case M_SQ:
-    // subMenuIndex = gCurrentPreset->band.squelch;
+    subMenuIndex = radio->squelch;
     break;
   case M_GAIN:
-    // subMenuIndex = gCurrentPreset->band.gainIndex;
+    subMenuIndex = radio->gainIndex;
     break;
   default:
     subMenuIndex = 0;
@@ -165,7 +165,7 @@ static void setTXF(uint32_t f) {
 }
 
 // static void setTXOffset(uint32_t f) {
-//   gCurrentPreset->offset = f;
+//   gVFO->offset = f;
 //   PRESETS_SaveCurrent();
 // }
 

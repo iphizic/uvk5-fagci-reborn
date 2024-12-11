@@ -64,7 +64,7 @@ void SVC_SCAN_Init(void) {
     // if (radio->channel >= 0) {
     //   // gScanFn = RADIO_NextCH;
     // } else {
-    //   // gScanFn = RADIO_NextPresetFreqXBand;
+      gScanFn = RADIO_NextFreqXBand;
     // }
   }
 }
@@ -79,7 +79,7 @@ void SVC_SCAN_Update(void) {
   }
   if (lastListenState != gIsListening) {
     if (gIsListening &&
-        // (gCurrentApp != APP_SPECTRUM && gCurrentApp != APP_ANALYZER) &&
+        (gCurrentApp != APP_SPECTRUM /*&& gCurrentApp != APP_ANALYZER*/) &&
         lastSavedF != radio->rx.f) {
       lastSavedF = radio->rx.f;
       RADIO_SaveCurrentVFO();

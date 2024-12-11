@@ -70,8 +70,8 @@ void RADIO_SetupByCurrentVFO();
 void RADIO_NextVFO(void);
 // void RADIO_NextCH(bool next);
 void RADIO_NextFreqNoClicks(bool next);
-// bool RADIO_NextPresetFreqXBandEx(bool next, bool tune, bool precise);
-// void RADIO_NextPresetFreqXBand(bool next);
+bool RADIO_NextFreqXBandEx(bool next, bool tune, bool precise);
+void RADIO_NextFreqXBand(bool next);
 // void RADIO_ToggleVfoMR();
 
 void RADIO_SetSquelchPure(uint32_t f, uint8_t sql);
@@ -96,6 +96,6 @@ void RADIO_ToggleBK1080(bool on);
 ModulationType getNextModulation(bool next);
 
 void RADIO_UpdateMeasurements();
-// bool RADIO_UpdateMeasurementsEx(Loot *dest);
+bool RADIO_UpdateMeasurementsEx();
 
 #endif /* end of include guard: RADIO_H */

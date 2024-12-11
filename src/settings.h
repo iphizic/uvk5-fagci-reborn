@@ -220,6 +220,12 @@ typedef struct {
   uint8_t squelch : 4;
   uint8_t gainIndex : 5;
   uint16_t rssi;
+  bool open;
+  uint32_t lastTimeOpen;
+  uint16_t duration;
+  uint8_t noise;
+  uint8_t cd;
+  uint8_t ct;
 } __attribute__((packed)) VFO;
 // getsize(VFO)
 
