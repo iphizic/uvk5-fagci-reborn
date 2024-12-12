@@ -5,6 +5,7 @@
 // #include "../helper/presetlist.h"
 #include <stdbool.h>
 #include <stdint.h>
+#include "components.h"
 
 void SP_AddPoint();
 void SP_ResetHistory();
@@ -24,5 +25,6 @@ void SP_Shift(int16_t n);
 
 extern const uint8_t SPECTRUM_Y;
 extern const uint8_t SPECTRUM_H;
+extern FRange range;
 
 #endif /* end of include guard: UI_SPECTRUM_H */

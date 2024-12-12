@@ -34,6 +34,8 @@ static uint8_t noiseO = 0;
 
 static uint8_t msmDelay = 5;
 // static Loot msm = {0};
+static uint32_t scanFreq = 0;
+static uint32_t prevScanFreq = 0;
 
 static uint16_t oldPresetIndex = 255;
 
@@ -93,7 +95,14 @@ static void init() {
 }
 
 static void startNewScan() {
-  SP_Begin();
+
+  if (scanFreq != prevScanFreq || scanFreq == 0 ) {
+    init();
+    prevScanFreq = scanFreq;
+    scanFreq = radio->rx.f;
+  } else {
+    SP_Begin();
+  }
 }
 
 void SPECTRUM_init(void) {
@@ -108,6 +117,7 @@ void SPECTRUM_deinit() {
   BK4819_WriteRegister(BK4819_REG_30, 0xBFF1);
   RADIO_ToggleRX(false);
   SVC_Toggle(SVC_LISTEN, true, 10);
+  radio->rx.f = scanFreq;
   RADIO_SetupBandParams();
 }
 
@@ -216,7 +226,7 @@ void SPECTRUM_render(void) {
   // STATUSLINE_SetText(currentBand->name);
 
   SP_Render();
-  UI_DrawSpectrumElements(SPECTRUM_Y, msmDelay, noiseOpenDiff);
+  UI_DrawSpectrumElements(SPECTRUM_Y, msmDelay, noiseOpenDiff, range.start, range.end);
 
   const uint8_t bl = 16 + 6;
     if (radio->ct != 0xFF) {

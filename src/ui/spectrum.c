@@ -24,7 +24,7 @@ static uint8_t x = 0;
 static uint8_t ox = UINT8_MAX;
 static uint8_t filledPoints;
 
-static FRange range;
+FRange range;
 static uint32_t step;
 
 static uint16_t minRssi(const uint16_t *array, uint8_t n) {
@@ -43,9 +43,9 @@ static uint8_t maxNoise(const uint8_t *array, uint8_t n) {
     if (array[i] != UINT8_MAX && array[i] > max) {
       max = array[i];
     }
-    if (array[i] == UINT8_MAX) {
-      Log("!!! NOISE=255 at %u", i); // appears when switching bands
-    }
+    // if (array[i] == UINT8_MAX) {
+    //   Log("!!! NOISE=255 at %u", i); // appears when switching bands
+    // }
   }
   return max;
 }
@@ -65,12 +65,11 @@ void SP_Begin(void) {
 
 void SP_Init() {
   step = StepFrequencyTable[radio->step];
-  range = (FRange){ radio->rx.f - step * MAX_POINTS/2, radio->rx.f + step * MAX_POINTS/2 };
+  range = (FRange){ radio->rx.f - step * MAX_POINTS, radio->rx.f };
   SP_ResetHistory();
   SP_Begin();
 }
 
-#include "../driver/uart.h"
 void SP_AddPoint() {
   uint32_t xs = ConvertDomain(radio->rx.f, range.start, range.end, 0, MAX_POINTS);
   uint32_t xe =
@@ -112,6 +111,7 @@ static VMinMax getV() {
 
 void SP_Render() {
   const VMinMax v = getV();
+  UI_DrawTicks(S_BOTTOM, range.start, range.end);
 
   DrawHLine(0, S_BOTTOM, MAX_POINTS, C_FILL);
 
