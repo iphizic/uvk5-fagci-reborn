@@ -5,10 +5,10 @@
 #include "../driver/st7565.h"
 #include "../driver/system.h"
 #include "../driver/uart.h"
-#include "../helper/channels.h"
-#include "../helper/lootlist.h"
+// #include "../helper/channels.h"
+// #include "../helper/lootlist.h"
 #include "../helper/measurements.h"
-#include "../helper/presetlist.h"
+// #include "../helper/presetlist.h"
 #include "../scheduler.h"
 #include "../settings.h"
 #include "../svc.h"
@@ -23,7 +23,7 @@
 
 static uint8_t noiseOpenDiff = 14;
 
-static Band *currentBand;
+// static Band *currentBand;
 
 static uint32_t currentStepSize;
 
@@ -33,11 +33,13 @@ static uint16_t rssiO = UINT16_MAX;
 static uint8_t noiseO = 0;
 
 static uint8_t msmDelay = 5;
-static Loot msm = {0};
+// static Loot msm = {0};
+static uint32_t scanFreq = 0;
+static uint32_t prevScanFreq = 0;
 
 static uint16_t oldPresetIndex = 255;
 
-static bool isSquelchOpen() { return msm.rssi >= rssiO && msm.noise <= noiseO; }
+static bool isSquelchOpen() { return radio->rssi >= rssiO && radio->noise <= noiseO; }
 
 static void updateStats() {
   const uint16_t noiseFloor = SP_GetNoiseFloor();
@@ -48,53 +50,36 @@ static void updateStats() {
 
 static void updateMsm() {
   if (!gIsListening) {
-    BK4819_SetFrequency(msm.f);
+    BK4819_SetFrequency(radio->rx.f);
     BK4819_WriteRegister(BK4819_REG_30, 0x0200);
     BK4819_WriteRegister(BK4819_REG_30, 0xBFF1);
     SYSTEM_DelayMs(msmDelay); // (X_X)
   }
-  msm.rssi = BK4819_GetRSSI();
-  msm.noise = BK4819_GetNoise();
-  msm.blacklist = false;
+  radio->rssi = BK4819_GetRSSI();
+  radio->noise = BK4819_GetNoise();
 
   if (gIsListening) {
     noiseO -= noiseOpenDiff;
-    msm.open = isSquelchOpen();
+    radio->open = isSquelchOpen();
     noiseO += noiseOpenDiff;
   } else {
-    msm.open = isSquelchOpen();
+    radio->open = isSquelchOpen();
   }
-  if (gSettings.skipGarbageFrequencies && (msm.f % 1300000 == 0)) {
-    msm.open = false;
+  if (gSettings.skipGarbageFrequencies && (radio->rx.f % 1300000 == 0)) {
+    radio->open = false;
   }
 
-  SP_AddPoint(&msm);
-  LOOT_Update(&msm);
-  RADIO_ToggleRX(msm.open);
+  SP_AddPoint();
+  RADIO_ToggleRX(radio->open);
 }
 
 static void scanFn(bool _) {
-  if (msm.rssi == 0) { // to prevent skip freq when scanFn is called faster
+  if (radio->rssi == 0) { // to prevent skip freq when scanFn is called faster
     return;
   }
   RADIO_ToggleRX(false);
-  radio->rx.f = msm.f;
-  if (RADIO_NextPresetFreqXBandEx(true, false, false)) {
-    if (noiseO > 0) {
-      // next band scan
-      msm.f = radio->rx.f;
-    } else {
-      // rewind
-      updateStats();
-      PRESET_Select(oldPresetIndex);
-    }
-    newScan = true;
-  } else {
-    msm.f = radio->rx.f;
-    SP_Next();
-  }
-  msm.rssi = 0;
-  msm.noise = UINT8_MAX;
+  radio->rssi = 0;
+  radio->noise = UINT8_MAX;
 }
 
 static void init() {
@@ -104,30 +89,23 @@ static void init() {
 
   radio->radio = RADIO_BK4819;
 
-  LOOT_Standby();
   RADIO_SetupBandParams();
 
-  SP_Init(&gCurrentPreset->band);
+  SP_Init();
 }
 
 static void startNewScan() {
-  currentBand = &gCurrentPreset->band;
-  currentStepSize = PRESETS_GetStepSize(gCurrentPreset);
 
-  msm.f = currentBand->bounds.start;
-
-  if (gSettings.activePreset != oldPresetIndex) {
+  if (scanFreq != prevScanFreq || scanFreq == 0 ) {
     init();
-    oldPresetIndex = gSettings.activePreset;
-    gLastActiveLoot = NULL;
+    prevScanFreq = scanFreq;
+    scanFreq = radio->rx.f;
   } else {
     SP_Begin();
   }
 }
 
 void SPECTRUM_init(void) {
-  CHANNELS_LoadBlacklistToLoot();
-
   SVC_Toggle(SVC_LISTEN, false, 0);
   RADIO_LoadCurrentVFO();
   newScan = true;
@@ -139,6 +117,7 @@ void SPECTRUM_deinit() {
   BK4819_WriteRegister(BK4819_REG_30, 0xBFF1);
   RADIO_ToggleRX(false);
   SVC_Toggle(SVC_LISTEN, true, 10);
+  radio->rx.f = scanFreq;
   RADIO_SetupBandParams();
 }
 
@@ -147,13 +126,9 @@ bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
   if (bKeyPressed || (!bKeyPressed && !bKeyHeld)) {
     switch (Key) {
     case KEY_UP:
-      PRESETS_SelectPresetRelative(true);
-      RADIO_SelectPresetSave(gSettings.activePreset);
       startNewScan();
       return true;
     case KEY_DOWN:
-      PRESETS_SelectPresetRelative(false);
-      RADIO_SelectPresetSave(gSettings.activePreset);
       startNewScan();
       return true;
     case KEY_1:
@@ -181,10 +156,10 @@ bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
   if (bKeyHeld && bKeyPressed && !gRepeatHeld) {
     switch (Key) {
     case KEY_SIDE1:
-      if (gLastActiveLoot) {
-        RADIO_TuneToSave(gLastActiveLoot->f);
-        APPS_run(APP_ANALYZER);
-      }
+      // if (gLastActiveLoot) {
+      //   RADIO_TuneToSave(gLastActiveLoot->f);
+      //   APPS_run(APP_ANALYZER);
+      // }
       return true;
     default:
       break;
@@ -198,31 +173,29 @@ bool SPECTRUM_key(KEY_Code_t Key, bool bKeyPressed, bool bKeyHeld) {
       APPS_exit();
       return true;
     case KEY_SIDE1:
-      LOOT_BlacklistLast();
       RADIO_NextFreqNoClicks(true);
       return true;
     case KEY_SIDE2:
-      LOOT_WhitelistLast();
       RADIO_NextFreqNoClicks(true);
       return true;
     case KEY_F:
-      APPS_run(APP_PRESET_CFG);
+      // APPS_run(APP_PRESET_CFG);
       return true;
     case KEY_0:
-      APPS_run(APP_PRESETS_LIST);
+      // APPS_run(APP_PRESETS_LIST);
       return true;
     case KEY_STAR:
-      APPS_run(APP_LOOT_LIST);
+      // APPS_run(APP_LOOT_LIST);
       return true;
     case KEY_5:
       return true;
     case KEY_4:
       return true;
     case KEY_PTT:
-      if (gLastActiveLoot) {
-        RADIO_TuneToSave(gLastActiveLoot->f);
-        APPS_run(APP_VFOPRO);
-      }
+      // if (gLastActiveLoot) {
+      //   RADIO_TuneToSave(gLastActiveLoot->f);
+      //   APPS_run(APP_VFOPRO);
+      // }
       return true;
     default:
       break;
@@ -250,20 +223,18 @@ void SPECTRUM_update(void) {
 }
 
 void SPECTRUM_render(void) {
-  STATUSLINE_SetText(currentBand->name);
+  // STATUSLINE_SetText(currentBand->name);
 
-  SP_Render(gCurrentPreset);
-  UI_DrawSpectrumElements(SPECTRUM_Y, msmDelay, noiseOpenDiff, currentBand);
+  SP_Render();
+  UI_DrawSpectrumElements(SPECTRUM_Y, msmDelay, noiseOpenDiff, range.start, range.end);
 
   const uint8_t bl = 16 + 6;
-  if (gLastActiveLoot) {
-    if (gLastActiveLoot->ct != 0xFF) {
+    if (radio->ct != 0xFF) {
       PrintSmallEx(LCD_XCENTER, bl, POS_C, C_FILL, "CT %u.%u",
-                   CTCSS_Options[gLastActiveLoot->ct] / 10,
-                   CTCSS_Options[gLastActiveLoot->ct] % 10);
-    } else if (gLastActiveLoot->cd != 0xFF) {
+                   CTCSS_Options[radio->ct] / 10,
+                   CTCSS_Options[radio->ct] % 10);
+    } else if (radio->cd != 0xFF) {
       PrintSmallEx(LCD_XCENTER, bl, POS_C, C_FILL, "D%03oN",
-                   DCS_Options[gLastActiveLoot->cd]);
+                   DCS_Options[radio->cd]);
     }
-  }
 }

@@ -13,7 +13,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-Loot *(*gListenFn)(void) = NULL;
+void (*gListenFn)(void) = NULL;
 
 static const uint8_t VFOS_COUNT = 2;
 static const uint8_t DW_CHECK_DELAY = 20;

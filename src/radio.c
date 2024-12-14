@@ -14,22 +14,18 @@
 #include "driver/uart.h"
 #include "helper/adapter.h"
 #include "helper/battery.h"
-#include "helper/channels.h"
-#include "helper/lootlist.h"
 #include "helper/measurements.h"
-#include "helper/presetlist.h"
 #include "helper/vfos.h"
 #include "misc.h"
 #include "scheduler.h"
 #include "settings.h"
 #include "svc.h"
+#include <stdint.h>
 #include <string.h>
 
 VFO *radio;
 VFO gVFO[2] = {0};
-Preset *gVFOPresets[2] = {0};
-
-Loot gLoot[2] = {0};
+// Preset *gVFOPresets[2] = {0};
 
 char gVFONames[2][10] = {0};
 
@@ -201,10 +197,10 @@ static void onVfoUpdate(void) {
   TaskAdd("VFO sav", RADIO_SaveCurrentVFO, 2000, false, 0);
 }
 
-static void onPresetUpdate(void) {
-  TaskRemove(PRESETS_SaveCurrent);
-  TaskAdd("PRS sav", PRESETS_SaveCurrent, 2000, false, 0);
-}
+// static void onPresetUpdate(void) {
+//   TaskRemove(PRESETS_SaveCurrent);
+//   TaskAdd("PRS sav", PRESETS_SaveCurrent, 2000, false, 0);
+// }
 
 static void setupToneDetection() {
   uint16_t InterruptMask =
@@ -242,7 +238,7 @@ static bool isSimpleSql() {
 
 static bool isSqOpenSimple(uint16_t r) {
   const uint8_t band = radio->rx.f > SETTINGS_GetFilterBound() ? 1 : 0;
-  const uint8_t sq = gCurrentPreset->band.squelch;
+  const uint8_t sq = radio->squelch;
   const uint16_t ro = SQ[band][0][sq];
   const uint16_t rc = SQ[band][1][sq];
   const uint8_t no = SQ[band][2][sq];
@@ -254,7 +250,7 @@ static bool isSqOpenSimple(uint16_t r) {
 
   bool open;
 
-  switch (gCurrentPreset->band.squelchType) {
+  switch (radio->squelchType) {
   case SQUELCH_RSSI_NOISE_GLITCH:
     n = BK4819_GetNoise();
     g = BK4819_GetGlitch();
@@ -286,6 +282,7 @@ static bool isSqOpenSimple(uint16_t r) {
   }
 
   return open;
+  // return false;
 }
 
 static void toggleBK4819(bool on) {
@@ -314,27 +311,28 @@ static void toggleBK1080SI4732(bool on) {
   }
 }
 
-static uint8_t calculateOutputPower(Preset *p) {
+static uint8_t calculateOutputPower(uint32_t f) {
   uint8_t power_bias;
-
-  switch (p->power) {
-  case TX_POW_LOW:
-    power_bias = p->powCalib.s;
-    break;
-
-  case TX_POW_MID:
-    power_bias = p->powCalib.m;
-    break;
-
-  case TX_POW_HIGH:
-    power_bias = p->powCalib.e;
-    break;
-
-  default:
-    power_bias = p->powCalib.s;
-    if (power_bias > 10)
-      power_bias -= 10; // 10mw if Low=500mw
-  }
+  //
+  // switch (p->power) {
+  // case TX_POW_LOW:
+  //   power_bias = p->powCalib.s;
+  //   break;
+  //
+  // case TX_POW_MID:
+  //   power_bias = p->powCalib.m;
+  //   break;
+  //
+  // case TX_POW_HIGH:
+  //   power_bias = p->powCalib.e;
+  //   break;
+  //
+  // default:
+  //   power_bias = p->powCalib.s;
+  //   if (power_bias > 10)
+  //     power_bias -= 10; // 10mw if Low=500mw
+  // }
+  power_bias = 10;
 
   return power_bias;
 }
@@ -463,31 +461,27 @@ void RADIO_EnableCxCSS(void) {
   // SYSTEM_DelayMs(200);
 }
 
-uint32_t RADIO_GetTXFEx(VFO *vfo, Preset *p) {
+uint32_t RADIO_GetTXFEx(VFO *vfo) {
   uint32_t txF = vfo->rx.f;
 
-  if (vfo->tx.f) {
     txF = vfo->tx.f;
-  } else if (p->offset && p->offsetDir != OFFSET_NONE) {
-    txF = vfo->rx.f + (p->offsetDir == OFFSET_PLUS ? p->offset : -p->offset);
-  }
 
   return txF;
 }
 
-uint32_t RADIO_GetTXF(void) { return RADIO_GetTXFEx(radio, gCurrentPreset); }
+uint32_t RADIO_GetTXF(void) { return RADIO_GetTXFEx(radio); }
 
 TXState RADIO_GetTXState(uint32_t txF) {
   if (gSettings.upconverter) {
     return TX_DISABLED_UPCONVERTER;
   }
 
-  const Preset *txPreset = PRESET_ByFrequency(txF);
+  // const Preset *txPreset = PRESET_ByFrequency(txF);
 
-  if (!txPreset->allowTx || RADIO_GetRadio() != RADIO_BK4819 ||
-      SVC_Running(SVC_FC)) {
-    return TX_DISABLED;
-  }
+  // if (!txPreset->allowTx || RADIO_GetRadio() != RADIO_BK4819 ||
+  //     SVC_Running(SVC_FC)) {
+  //   return TX_DISABLED;
+  // }
 
   if (gBatteryPercent == 0) {
     return TX_BAT_LOW;
@@ -499,8 +493,8 @@ TXState RADIO_GetTXState(uint32_t txF) {
 }
 
 uint32_t RADIO_GetTxPower(uint32_t txF) {
-  Preset *txPreset = PRESET_ByFrequency(txF);
-  uint8_t power = calculateOutputPower(txPreset);
+  // Preset *txPreset = PRESET_ByFrequency(txF);
+  uint8_t power = calculateOutputPower(txF);
   if (power > 0x91) {
     power = 0x91;
   }
@@ -508,11 +502,13 @@ uint32_t RADIO_GetTxPower(uint32_t txF) {
   return power;
 }
 
+bool RADIO_allowTX(uint32_t f) { return false; };
+
 void RADIO_ToggleTX(bool on) {
-  uint32_t txF = RADIO_GetTXF();
-  uint8_t power = RADIO_GetTxPower(txF);
-  SVC_Toggle(SVC_FC, false, 0);
-  RADIO_ToggleTXEX(on, txF, power, true);
+  // uint32_t txF = RADIO_GetTXF();
+  // uint8_t power = RADIO_GetTxPower(txF);
+  // SVC_Toggle(SVC_FC, false, 0);
+  // RADIO_ToggleTXEX(on, txF, power, true);
 }
 
 void RADIO_ToggleTXEX(bool on, uint32_t txF, uint8_t power, bool paEnabled) {
@@ -562,7 +558,7 @@ void RADIO_SetSquelchPure(uint32_t f, uint8_t sql) {
 }
 
 void RADIO_TuneToPure(uint32_t f, bool precise) {
-  LOOT_Replace(&gLoot[gSettings.activeVFO], f);
+  // LOOT_Replace(&gLoot[gSettings.activeVFO], f);
   Radio r = RADIO_GetRadio();
   // Log("Tune %s to %u", radioNames[r], f);
   switch (r) {
@@ -594,8 +590,8 @@ void RADIO_SwitchRadio() {
 void RADIO_SetupByCurrentVFO(void) {
   uint32_t f = radio->rx.f;
   lastMsmUpdate = 0;
-  PRESET_SelectByFrequency(f);
-  gVFOPresets[gSettings.activeVFO] = gCurrentPreset;
+  // PRESET_SelectByFrequency(f);
+  // gVFOPresets[gSettings.activeVFO] = gCurrentPreset;
 
   /* Log("SetupByCurrentVFO, p=%s, r=%s, f=%u", gCurrentPreset->band.name,
       radioNames[RADIO_GetRadio()], f); */
@@ -610,9 +606,9 @@ void RADIO_SetupByCurrentVFO(void) {
 
 // USE CASE: set vfo temporary for current app
 void RADIO_TuneTo(uint32_t f) {
-  if (radio->channel != -1) {
-    radio->channel = -1;
-  }
+  // if (radio->channel != -1) {
+  //   radio->channel = -1;
+  // }
   radio->tx.f = 0;
   radio->rx.f = f;
   radio->modulation = getNextModulation(false);
@@ -625,35 +621,29 @@ void RADIO_TuneTo(uint32_t f) {
 void RADIO_TuneToSave(uint32_t f) {
   RADIO_TuneTo(f);
   RADIO_SaveCurrentVFO();
-  gCurrentPreset->lastUsedFreq = f;
-  PRESETS_SaveCurrent();
+  // radio->lastUsedFreq = f;
+  // PRESETS_SaveCurrent();
 }
 
 void RADIO_SaveCurrentVFO(void) { VFOS_Save(gSettings.activeVFO, radio); }
 
-void RADIO_SelectPresetSave(int8_t num) {
-  PRESET_Select(num);
-  radio->modulation = gCurrentPreset->band.modulation;
-  radio->modulation = getNextModulation(false);
-  radio->radio = RADIO_UNKNOWN;
-
-  // PRESETS_SaveCurrent();
-  if (PRESET_InRange(gCurrentPreset->lastUsedFreq, gCurrentPreset)) {
-    RADIO_TuneToSave(gCurrentPreset->lastUsedFreq);
-  } else {
-    RADIO_TuneToSave(gCurrentPreset->band.bounds.start);
-  }
-}
+// void RADIO_SelectPresetSave(int8_t num) {
+//   PRESET_Select(num);
+//   radio->modulation = gCurrentPreset->band.modulation;
+//   radio->modulation = getNextModulation(false);
+//   radio->radio = RADIO_UNKNOWN;
+//
+//   // PRESETS_SaveCurrent();
+//   if (PRESET_InRange(gCurrentPreset->lastUsedFreq, gCurrentPreset)) {
+//     RADIO_TuneToSave(gCurrentPreset->lastUsedFreq);
+//   } else {
+//     RADIO_TuneToSave(gCurrentPreset->band.bounds.start);
+//   }
+// }
 
 void RADIO_LoadCurrentVFO(void) {
   for (uint8_t i = 0; i < 2; ++i) {
     VFOS_Load(i, &gVFO[i]);
-    if (gVFO[i].channel >= 0) {
-      RADIO_VfoLoadCH(i);
-    }
-    gVFOPresets[i] = PRESET_ByFrequency(gVFO[i].rx.f);
-
-    LOOT_Replace(&gLoot[i], gVFO[i].rx.f);
   }
 
   radio = &gVFO[gSettings.activeVFO];
@@ -661,22 +651,22 @@ void RADIO_LoadCurrentVFO(void) {
 }
 
 void RADIO_SetSquelch(uint8_t sq) {
-  gCurrentPreset->band.squelch = sq;
-  RADIO_SetSquelchPure(gCurrentPreset->band.bounds.start, sq);
-  onPresetUpdate();
+  radio->squelch = sq;
+  RADIO_SetSquelchPure(radio->rx.f, sq);
+  RADIO_SaveCurrentVFO();
 }
 
 void RADIO_SetSquelchType(SquelchType t) {
-  gCurrentPreset->band.squelchType = t;
-  onPresetUpdate();
+  radio->squelchType = t;
+  RADIO_SaveCurrentVFO();
 }
 
 void RADIO_SetGain(uint8_t gainIndex) {
-  gCurrentPreset->band.gainIndex = gainIndex;
+  // gCurrentPreset->band.gainIndex = gainIndex;
   bool disableAGC = false;
   switch (RADIO_GetRadio()) {
   case RADIO_BK4819:
-    BK4819_SetAGC(gCurrentPreset->band.modulation != MOD_AM, gainIndex);
+    // BK4819_SetAGC(gCurrentPreset->band.modulation != MOD_AM, gainIndex);
     break;
   case RADIO_SI4732:
     // 0 - max gain
@@ -691,7 +681,7 @@ void RADIO_SetGain(uint8_t gainIndex) {
   default:
     break;
   }
-  onPresetUpdate();
+  // onPresetUpdate();
 }
 
 void RADIO_SetFilterBandwidth(BK4819_FilterBandwidth_t bw) {
@@ -716,13 +706,13 @@ void RADIO_SetFilterBandwidth(BK4819_FilterBandwidth_t bw) {
 
 void RADIO_SetupBandParams() {
   // Log("RADIO_SetupBandParams");
-  Band *b = &gCurrentPreset->band;
-  uint32_t fMid = b->bounds.start + (b->bounds.end - b->bounds.start) / 2;
+  // Band *b = ;
+  // uint32_t fMid = b->bounds.start + (b->bounds.end - b->bounds.start) / 2;
   ModulationType mod = RADIO_GetModulation();
   switch (RADIO_GetRadio()) {
   case RADIO_BK4819:
-    BK4819_SquelchType(b->squelchType);
-    BK4819_Squelch(b->squelch, fMid, gSettings.sqlOpenTime,
+    BK4819_SquelchType(radio->squelchType);
+    BK4819_Squelch(radio->squelch, radio->rx.f, gSettings.sqlOpenTime,
                    gSettings.sqlCloseTime);
     BK4819_SetModulation(mod);
     if (gSettings.scrambler) {
@@ -737,12 +727,12 @@ void RADIO_SetupBandParams() {
   case RADIO_SI4732:
     setSI4732Modulation(mod);
     if (mod == MOD_FM) {
-      SI47XX_SetSeekFmLimits(b->bounds.start, b->bounds.end);
-      SI47XX_SetSeekFmSpacing(StepFrequencyTable[b->step]);
+      // SI47XX_SetSeekFmLimits(b->bounds.start, b->bounds.end);
+      SI47XX_SetSeekFmSpacing(StepFrequencyTable[radio->step]);
     } else {
       if (mod == MOD_AM) {
-        SI47XX_SetSeekAmLimits(b->bounds.start, b->bounds.end);
-        SI47XX_SetSeekAmSpacing(StepFrequencyTable[b->step]);
+        // SI47XX_SetSeekAmLimits(b->bounds.start, b->bounds.end);
+        SI47XX_SetSeekAmSpacing(StepFrequencyTable[radio->step]);
       }
     }
 
@@ -750,9 +740,9 @@ void RADIO_SetupBandParams() {
   default:
     break;
   }
-  RADIO_SetGain(b->gainIndex);
+  RADIO_SetGain(radio->gainIndex);
   // Log("Set mod %s", modulationTypeOptions[mod]);
-  RADIO_SetFilterBandwidth(b->bw);
+  RADIO_SetFilterBandwidth(radio->bw);
   // Log("RADIO_SetupBandParams end");
 }
 
@@ -804,10 +794,10 @@ uint16_t RADIO_GetS() {
   }
 }
 
-bool RADIO_IsSquelchOpen(const Loot *msm) {
+bool RADIO_IsSquelchOpen() {
   if (RADIO_GetRadio() == RADIO_BK4819) {
     if (isSimpleSql()) {
-      return isSqOpenSimple(msm->rssi);
+      return isSqOpenSimple(radio->rssi);
     } else {
       return BK4819_IsSquelchOpen();
     }
@@ -815,8 +805,7 @@ bool RADIO_IsSquelchOpen(const Loot *msm) {
   return true;
 }
 
-Loot *RADIO_UpdateMeasurements(void) {
-  Loot *msm = &gLoot[gSettings.activeVFO];
+void RADIO_UpdateMeasurements(void) {
   if (RADIO_GetRadio() == RADIO_SI4732 && SVC_Running(SVC_SCAN)) {
     bool valid = false;
     uint32_t f = SI47XX_getFrequency(&valid);
@@ -827,11 +816,11 @@ Loot *RADIO_UpdateMeasurements(void) {
     }
   }
   if (RADIO_GetRadio() != RADIO_BK4819 && Now() - lastMsmUpdate <= 1000) {
-    return msm;
+    return;
   }
   lastMsmUpdate = Now();
-  msm->rssi = RADIO_GetRSSI();
-  msm->open = RADIO_IsSquelchOpen(msm);
+  radio->rssi = RADIO_GetRSSI();
+  radio->open = RADIO_IsSquelchOpen();
   if (radio->rx.codeType == CODE_TYPE_OFF) {
     toneFound = true;
   }
@@ -846,14 +835,14 @@ Loot *RADIO_UpdateMeasurements(void) {
           (intBits & BK4819_REG_02_CTCSS_FOUND) ||
           (intBits & BK4819_REG_02_CDCSS_FOUND)) {
         // Log("Tail tone or ctcss/dcs found");
-        msm->open = false;
+        radio->open = false;
         toneFound = false;
         lastTailTone = Now();
       }
       if ((intBits & BK4819_REG_02_CTCSS_LOST) ||
           (intBits & BK4819_REG_02_CDCSS_LOST)) {
         // Log("ctcss/dcs lost");
-        msm->open = true;
+        radio->open = true;
         toneFound = true;
       }
 
@@ -864,19 +853,17 @@ Loot *RADIO_UpdateMeasurements(void) {
     }
     // else sql reopens
     if (!toneFound || (Now() - lastTailTone) < 250) {
-      msm->open = false;
+       radio->open = false;
     }
   }
-  if (RADIO_GetRadio() == RADIO_BK4819) {
-    LOOT_Update(msm);
-  }
 
-  bool rx = msm->open;
+  bool rx = radio->open;
   if (gTxState != TX_ON) {
     if (gMonitorMode) {
       rx = true;
-    } else if (gSettings.noListen &&
-               (gCurrentApp == APP_SPECTRUM || gCurrentApp == APP_ANALYZER)) {
+    } else if (gSettings.noListen
+               && (gCurrentApp == APP_SPECTRUM /*|| gCurrentApp == APP_ANALYZER*/)
+    ){
       rx = false;
     } else if (gSettings.skipGarbageFrequencies &&
                (radio->rx.f % 1300000 == 0) &&
@@ -885,37 +872,67 @@ Loot *RADIO_UpdateMeasurements(void) {
     }
     RADIO_ToggleRX(rx);
   }
-  return msm;
 }
 
-bool RADIO_UpdateMeasurementsEx(Loot *dest) {
-  Loot *msm = &gLoot[gSettings.activeVFO];
+void UpdateEx() {
+
+  if (SVC_Running(SVC_SCAN) && !gMonitorMode) {
+    radio->open = false;
+  }
+
+  if (radio->open) {
+    uint32_t cd = 0;
+    uint16_t ct = 0;
+    uint8_t Code = 0;
+    BK4819_CssScanResult_t res = BK4819_GetCxCSSScanResult(&cd, &ct);
+    switch (res) {
+    case BK4819_CSS_RESULT_CDCSS:
+      Code = DCS_GetCdcssCode(cd);
+      if (Code != 0xFF) {
+        radio->cd = Code;
+      }
+      break;
+    case BK4819_CSS_RESULT_CTCSS:
+      Code = DCS_GetCtcssCode(ct);
+      if (Code != 0xFF) {
+        radio->ct = Code;
+      }
+      break;
+    default:
+      break;
+    }
+    radio->lastTimeOpen = Now();
+  }
+}
+
+bool RADIO_UpdateMeasurementsEx() {
+  VFO *msm = &gVFO[gSettings.activeVFO];
   RADIO_UpdateMeasurements();
-  LOOT_UpdateEx(dest, msm);
+  UpdateEx();
   return msm->open;
 }
 
-void RADIO_VfoLoadCH(uint8_t i) {
-  CH ch;
-  CHANNELS_Load(gVFO[i].channel, &ch);
-  CH2VFO(&ch, &gVFO[i]);
-  strncpy(gVFONames[i], ch.name, 9);
-}
-
-bool RADIO_TuneToCH(int32_t num) {
-  if (CHANNELS_Existing(num)) {
-    radio->channel = num;
-    RADIO_VfoLoadCH(gSettings.activeVFO);
-    onVfoUpdate();
-    RADIO_SetupByCurrentVFO();
-    return true;
-  }
-  return false;
-}
-
-void RADIO_NextCH(bool next) {
-  RADIO_TuneToCH(CHANNELS_Next(radio->channel, next));
-}
+// void RADIO_VfoLoadCH(uint8_t i) {
+//   CH ch;
+//   CHANNELS_Load(gVFO[i].channel, &ch);
+//   CH2VFO(&ch, &gVFO[i]);
+//   strncpy(gVFONames[i], ch.name, 9);
+// }
+//
+// bool RADIO_TuneToCH(int32_t num) {
+//   if (CHANNELS_Existing(num)) {
+//     radio->channel = num;
+//     RADIO_VfoLoadCH(gSettings.activeVFO);
+//     onVfoUpdate();
+//     RADIO_SetupByCurrentVFO();
+//     return true;
+//   }
+//   return false;
+// }
+//
+// void RADIO_NextCH(bool next) {
+//   RADIO_TuneToCH(CHANNELS_Next(radio->channel, next));
+// }
 
 void RADIO_NextVFO(void) {
   gSettings.activeVFO = !gSettings.activeVFO;
@@ -924,106 +941,70 @@ void RADIO_NextVFO(void) {
   SETTINGS_Save();
 }
 
-void RADIO_ToggleVfoMR(void) {
-  if (radio->channel >= 0) {
-    radio->channel += 1; // 0 -> 1
-    radio->channel *= -1;
-  } else {
-    radio->channel *= -1;
-    radio->channel -= 1; // 1 -> 0
-    if (CHANNELS_Existing(radio->channel)) {
-      RADIO_TuneToCH(radio->channel);
-    } else {
-      RADIO_NextCH(true);
-    }
-  }
-  RADIO_SaveCurrentVFO();
-}
+// void RADIO_ToggleVfoMR(void) {
+//   if (radio->channel >= 0) {
+//     radio->channel += 1; // 0 -> 1
+//     radio->channel *= -1;
+//   } else {
+//     radio->channel *= -1;
+//     radio->channel -= 1; // 1 -> 0
+//     if (CHANNELS_Existing(radio->channel)) {
+//       RADIO_TuneToCH(radio->channel);
+//     } else {
+//       RADIO_NextCH(true);
+//     }
+//   }
+//   RADIO_SaveCurrentVFO();
+// }
 
 void RADIO_UpdateSquelchLevel(bool next) {
-  uint8_t sq = gCurrentPreset->band.squelch;
+  uint8_t sq = radio->squelch;
   IncDec8(&sq, 0, 10, next ? 1 : -1);
   RADIO_SetSquelch(sq);
 }
 
 void RADIO_NextFreqNoClicks(bool next) {
   const int8_t dir = next ? 1 : -1;
-
-  if (radio->channel >= 0) {
-    RADIO_NextCH(next);
-    return;
-  }
-
-  Preset *nextPreset = PRESET_ByFrequency(radio->rx.f + dir);
-  const Band *nextBand = &nextPreset->band;
-  uint32_t nextBandStep = StepFrequencyTable[nextBand->step];
-
-  uint32_t f = radio->rx.f + nextBandStep * dir;
-  if (nextPreset != gCurrentPreset && nextPreset != &defaultPreset &&
-      !PRESET_InRange(f, nextPreset)) {
-    if (next) {
-      RADIO_TuneTo(nextBand->bounds.start);
-    } else {
-      RADIO_TuneTo(nextBand->bounds.end - nextBand->bounds.end % nextBandStep);
-    }
-  } else {
-    f = PRESETS_GetF(nextPreset, PRESETS_GetChannel(nextPreset, f));
-    radio->channel = -1;
-    radio->tx.f = 0;
-    radio->rx.f = f;
-    RADIO_SetupByCurrentVFO();
-  }
+  radio->tx.f = 0;
+  radio->rx.f += StepFrequencyTable[radio->step] * (next ? 1 : -1);
+  RADIO_SetupByCurrentVFO();
   onVfoUpdate();
 }
 
-static void selectPreset(bool next) {
-  if (gSettings.crossBandScan) {
-    uint8_t index = gSettings.activePreset;
-    uint8_t sl = gSettings.currentScanlist;
-    uint8_t scanlistMask = 1 << sl;
-    PRESETS_SelectPresetRelative(next);
-    while (gSettings.activePreset != index) {
-      if (sl == 15 ||
-          (gCurrentPreset->memoryBanks & scanlistMask) == scanlistMask) {
-        return;
-      }
-      PRESETS_SelectPresetRelative(next);
-    }
-  }
-}
+// static void selectPreset(bool next) {
+//   if (gSettings.crossBandScan) {
+//     uint8_t index = gSettings.activePreset;
+//     uint8_t sl = gSettings.currentScanlist;
+//     uint8_t scanlistMask = 1 << sl;
+//     PRESETS_SelectPresetRelative(next);
+//     while (gSettings.activePreset != index) {
+//       if (sl == 15 ||
+//           (gCurrentPreset->memoryBanks & scanlistMask) == scanlistMask) {
+//         return;
+//       }
+//       PRESETS_SelectPresetRelative(next);
+//     }
+//   }
+// }
 
-bool RADIO_NextPresetFreqXBandEx(bool next, bool tune, bool precise) {
-  uint32_t steps = PRESETS_GetSteps(gCurrentPreset);
-  int64_t step = PRESETS_GetChannel(gCurrentPreset, radio->rx.f);
+bool RADIO_NextFreqXBandEx(bool next, bool tune, bool precise) {
+  int64_t step = radio->step;
   bool switchBand = false;
 
   if (next) {
-    step++;
+    radio->rx.f+=step;
   } else {
-    step--;
+    radio->rx.f-=step;
   }
 
-  if (step < 0) {
-    // get previous preset
-    switchBand = true;
-    selectPreset(false);
-    steps = PRESETS_GetSteps(gCurrentPreset);
-    step = steps - 1;
-  } else if (step >= steps) {
-    // get next preset
-    switchBand = true;
-    selectPreset(true);
-    step = 0;
-  }
-  radio->rx.f = PRESETS_GetF(gCurrentPreset, step);
   if (tune) {
     RADIO_TuneToPure(radio->rx.f, precise);
   }
   return switchBand;
 }
 
-void RADIO_NextPresetFreqXBand(bool next) {
-  RADIO_NextPresetFreqXBandEx(next, true, true);
+void RADIO_NextFreqXBand(bool next) {
+  RADIO_NextFreqXBandEx(next, true, true);
 }
 
 static ModulationType MODS_BK4819[] = {
@@ -1103,30 +1084,30 @@ void RADIO_ToggleModulation(void) {
 }
 
 void RADIO_UpdateStep(bool inc) {
-  uint8_t step = gCurrentPreset->band.step;
+  uint8_t step = radio->step;
   IncDec8(&step, 0, STEP_500_0kHz, inc ? 1 : -1);
-  gCurrentPreset->band.step = step;
-  onPresetUpdate();
+  radio->step = step;
+  RADIO_SaveCurrentVFO();
 }
 
 void RADIO_ToggleListeningBW(void) {
-  if (gCurrentPreset->band.bw == BK4819_FILTER_BW_SOMETHING) {
-    gCurrentPreset->band.bw = BK4819_FILTER_BW_WIDE;
-  } else {
-    ++gCurrentPreset->band.bw;
-  }
-
-  RADIO_SetFilterBandwidth(gCurrentPreset->band.bw);
-
-  onPresetUpdate();
+  // if (gCurrentPreset->band.bw == BK4819_FILTER_BW_SOMETHING) {
+  //   gCurrentPreset->band.bw = BK4819_FILTER_BW_WIDE;
+  // } else {
+  //   ++gCurrentPreset->band.bw;
+  // }
+  //
+  // RADIO_SetFilterBandwidth(gCurrentPreset->band.bw);
+  //
+  // onPresetUpdate();
 }
 
 void RADIO_ToggleTxPower(void) {
-  if (gCurrentPreset->power == TX_POW_HIGH) {
-    gCurrentPreset->power = TX_POW_ULOW;
-  } else {
-    ++gCurrentPreset->power;
-  }
-
-  onPresetUpdate();
+  // if (gCurrentPreset->power == TX_POW_HIGH) {
+  //   gCurrentPreset->power = TX_POW_ULOW;
+  // } else {
+  //   ++gCurrentPreset->power;
+  // }
+  //
+  // onPresetUpdate();
 }

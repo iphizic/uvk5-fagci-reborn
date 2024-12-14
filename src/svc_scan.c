@@ -4,7 +4,7 @@
 #include "driver/st7565.h"
 #include "driver/uart.h"
 #include "external/printf/printf.h"
-#include "helper/presetlist.h"
+// #include "helper/presetlist.h"
 #include "radio.h"
 #include "scheduler.h"
 #include "settings.h"
@@ -61,11 +61,11 @@ void SVC_SCAN_Init(void) {
   }
 
   if (!gScanFn) {
-    if (radio->channel >= 0) {
-      gScanFn = RADIO_NextCH;
-    } else {
-      gScanFn = RADIO_NextPresetFreqXBand;
-    }
+    // if (radio->channel >= 0) {
+    //   // gScanFn = RADIO_NextCH;
+    // } else {
+      gScanFn = RADIO_NextFreqXBand;
+    // }
   }
 }
 
@@ -79,7 +79,7 @@ void SVC_SCAN_Update(void) {
   }
   if (lastListenState != gIsListening) {
     if (gIsListening &&
-        (gCurrentApp != APP_SPECTRUM && gCurrentApp != APP_ANALYZER) &&
+        (gCurrentApp != APP_SPECTRUM /*&& gCurrentApp != APP_ANALYZER*/) &&
         lastSavedF != radio->rx.f) {
       lastSavedF = radio->rx.f;
       RADIO_SaveCurrentVFO();
@@ -103,13 +103,13 @@ void SVC_SCAN_Update(void) {
 void SVC_SCAN_Deinit(void) {
   gScanFn = NULL;
   gScanRedraw = true;
-  if (&defaultPreset == gCurrentPreset && defaultPreset.band.name[0] != 'd') {
-    sprintf(defaultPreset.band.name, "default");
-    defaultPreset.band.bounds.start = 0;
-    defaultPreset.band.bounds.end = 0;
-    RADIO_TuneTo(defaultPreset.lastUsedFreq);
-    SETTINGS_Load();
-  }
+  // if (&defaultPreset == gCurrentPreset && defaultPreset.band.name[0] != 'd') {
+  //   sprintf(defaultPreset.band.name, "default");
+  //   defaultPreset.band.bounds.start = 0;
+  //   defaultPreset.band.bounds.end = 0;
+  //   RADIO_TuneTo(defaultPreset.lastUsedFreq);
+  //   SETTINGS_Load();
+  // }
   if (RADIO_GetRadio() != RADIO_BK4819) {
     uint32_t f = radio->rx.f;
 

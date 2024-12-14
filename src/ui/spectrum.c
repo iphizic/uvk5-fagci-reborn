@@ -24,7 +24,7 @@ static uint8_t x = 0;
 static uint8_t ox = UINT8_MAX;
 static uint8_t filledPoints;
 
-static FRange *range;
+FRange range;
 static uint32_t step;
 
 static uint16_t minRssi(const uint16_t *array, uint8_t n) {
@@ -43,9 +43,9 @@ static uint8_t maxNoise(const uint8_t *array, uint8_t n) {
     if (array[i] != UINT8_MAX && array[i] > max) {
       max = array[i];
     }
-    if (array[i] == UINT8_MAX) {
-      Log("!!! NOISE=255 at %u", i); // appears when switching bands
-    }
+    // if (array[i] == UINT8_MAX) {
+    //   Log("!!! NOISE=255 at %u", i); // appears when switching bands
+    // }
   }
   return max;
 }
@@ -63,22 +63,17 @@ void SP_Begin(void) {
   ox = UINT8_MAX;
 }
 
-void SP_Next(void) {
-  // TODO: remove
-}
-
-void SP_Init(Band *b) {
-  range = &b->bounds;
-  step = StepFrequencyTable[b->step];
+void SP_Init() {
+  step = StepFrequencyTable[radio->step];
+  range = (FRange){ radio->rx.f - step * MAX_POINTS, radio->rx.f };
   SP_ResetHistory();
   SP_Begin();
 }
 
-#include "../driver/uart.h"
-void SP_AddPoint(const Loot *msm) {
-  uint32_t xs = ConvertDomain(msm->f, range->start, range->end, 0, MAX_POINTS);
+void SP_AddPoint() {
+  uint32_t xs = ConvertDomain(radio->rx.f, range.start, range.end, 0, MAX_POINTS);
   uint32_t xe =
-      ConvertDomain(msm->f + step, range->start, range->end, 0, MAX_POINTS);
+      ConvertDomain(radio->rx.f + step, range.start, range.end, 0, MAX_POINTS);
 
   if (xe > MAX_POINTS) {
     xe = MAX_POINTS;
@@ -89,11 +84,11 @@ void SP_AddPoint(const Loot *msm) {
       rssiHistory[x] = 0;
       noiseHistory[x] = UINT8_MAX;
     }
-    if (msm->rssi > rssiHistory[x]) {
-      rssiHistory[x] = msm->rssi;
+    if (radio->rssi > rssiHistory[x]) {
+      rssiHistory[x] = radio->rssi;
     }
-    if (msm->noise < noiseHistory[x]) {
-      noiseHistory[x] = msm->noise;
+    if (radio->noise < noiseHistory[x]) {
+      noiseHistory[x] = radio->noise;
     }
   }
   if (x + 1 > filledPoints) {
@@ -114,12 +109,9 @@ static VMinMax getV() {
   return (VMinMax){vMin, vMax};
 }
 
-void SP_Render(const Preset *p) {
+void SP_Render() {
   const VMinMax v = getV();
-
-  if (p) {
-    UI_DrawTicks(S_BOTTOM, &p->band);
-  }
+  UI_DrawTicks(S_BOTTOM, range.start, range.end);
 
   DrawHLine(0, S_BOTTOM, MAX_POINTS, C_FILL);
 
@@ -129,8 +121,8 @@ void SP_Render(const Preset *p) {
   }
 }
 
-void SP_RenderArrow(const Preset *p, uint32_t f) {
-  uint8_t cx = ConvertDomain(f, p->band.bounds.start, p->band.bounds.end, 0,
+void SP_RenderArrow(uint32_t f) {
+  uint8_t cx = ConvertDomain(f, range.start, range.end, 0,
                              MAX_POINTS - 1);
   DrawVLine(cx, SPECTRUM_Y, 4, C_FILL);
   FillRect(cx - 2, SPECTRUM_Y, 5, 2, C_FILL);
@@ -170,9 +162,9 @@ void SP_RenderGraph() {
   }
 }
 
-void SP_AddGraphPoint(const Loot *msm) {
-  rssiHistory[MAX_POINTS - 1] = msm->rssi;
-  noiseHistory[MAX_POINTS - 1] = msm->noise;
+void SP_AddGraphPoint() {
+  rssiHistory[MAX_POINTS - 1] = radio->rssi;
+  noiseHistory[MAX_POINTS - 1] = radio->noise;
   filledPoints = MAX_POINTS;
 }
 
