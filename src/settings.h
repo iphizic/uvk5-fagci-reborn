@@ -116,6 +116,52 @@ typedef enum {
 extern const char *EEPROM_TYPE_NAMES[8];
 extern const uint32_t EEPROM_SIZES[8];
 
+typedef enum {
+  eepromType = 0,
+  checkbyte = 1,
+  squelch = 2,
+  scrambler = 3,
+  batsave = 4, 
+  vox = 5,
+  backlight = 6,
+  txTime = 7,
+  micGain = 8,
+  currentScanlist = 9,
+  roger = 10,
+  scanmode = 11,
+  chDisplayMode = 12,
+  pttLock = 13,
+  crossBandScan = 14,
+  beep = 15,
+  keylock = 16,
+  busyChannelTxLock = 17,
+  ste = 18,
+  repeaterSte = 19,
+  dtmfdecode = 20,
+  brightness = 21,
+  contrast = 22,
+  mainApp = 23,
+  // int8_t presetsCount = 24,
+  // int8_t activePreset = 25,
+  batteryCalibration = 26,
+  batteryType = 27,
+  batteryStyle = 28,
+  sqOpenedTimeout = 29,
+  sqClosedTimeout = 30,
+  bound_240_280 = 31,
+  noListen = 32,
+  si4732PowerOff = 33,
+  dw = 34,
+  toneLocal = 35,
+  backlightOnSquelch = 36,
+  scanTimeout = 37,
+  sqlOpenTime = 38,
+  sqlCloseTime = 39,
+  skipGarbageFrequencies = 40,
+  activeVFO = 41,
+  upconverter = 42,
+} SettingsSlots;
+
 typedef struct {
   EEPROMType eepromType : 3;
   uint8_t checkbyte : 5;

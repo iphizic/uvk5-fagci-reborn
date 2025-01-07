@@ -97,5 +97,6 @@ ModulationType getNextModulation(bool next);
 
 void RADIO_UpdateMeasurements();
 bool RADIO_UpdateMeasurementsEx();
+void RADIO_UpdateCodes();
 
 #endif /* end of include guard: RADIO_H */

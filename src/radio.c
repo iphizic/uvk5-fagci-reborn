@@ -874,7 +874,7 @@ void RADIO_UpdateMeasurements(void) {
   }
 }
 
-void UpdateEx() {
+void RADIO_UpdateCodes() {
 
   if (SVC_Running(SVC_SCAN) && !gMonitorMode) {
     radio->open = false;
@@ -908,7 +908,7 @@ void UpdateEx() {
 bool RADIO_UpdateMeasurementsEx() {
   VFO *msm = &gVFO[gSettings.activeVFO];
   RADIO_UpdateMeasurements();
-  UpdateEx();
+  RADIO_UpdateCodes();
   return msm->open;
 }
 

@@ -7,7 +7,7 @@
 #include <stdint.h>
 #include "components.h"
 
-void SP_AddPoint();
+void SP_AddPoint(uint32_t *f);
 void SP_ResetHistory();
 void SP_Init();
 void SP_Begin();

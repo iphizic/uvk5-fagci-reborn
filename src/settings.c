@@ -1,8 +1,8 @@
 #include "settings.h"
-#include "driver/eeprom.h"
+#include "helper/mem_manager.h"
 #include "scheduler.h"
-#include "config.h"
 #include <stdint.h>
+#include <string.h>
 
 Settings gSettings;
 DwState gDW;
@@ -54,29 +54,205 @@ const uint16_t PAGE_SIZES[8] = {
 };
 
 void SETTINGS_checkSSBPatch(){
-  if (SETTINGS_GetEEPROMSize() < 32768) {
-    isPatchPresent = false;
-    return;
-  }
-  uint8_t buf[8];
-  const uint8_t patch[8] = PATCH_PREAMBULE;
-  const uint32_t PATCH_START = SETTINGS_GetEEPROMSize() - PATCH_SIZE;
-  EEPROM_ReadBuffer(PATCH_START, buf, 8);
-  for(uint32_t i=0; i < 8; i++){
-     if (patch[i] != buf[i]){
-      isPatchPresent = false;
-      return;
-    }
-  }
-  isPatchPresent = true;
+  // if (SETTINGS_GetEEPROMSize() < 32768) {
+  //   isPatchPresent = false;
+  //   return;
+  // }
+  // uint8_t buf[8];
+  // const uint8_t patch[8] = PATCH_PREAMBULE;
+  // const uint32_t PATCH_START = SETTINGS_GetEEPROMSize() - PATCH_SIZE;
+  // EEPROM_ReadBuffer(PATCH_START, buf, 8);
+  // for(uint32_t i=0; i < 8; i++){
+  //    if (patch[i] != buf[i]){
+  //     isPatchPresent = false;
+  //     return;
+  //   }
+  // }
+  // isPatchPresent = true;
 }
 
 void SETTINGS_Save(void) {
-  EEPROM_WriteBuffer(SETTINGS_OFFSET, &gSettings, SETTINGS_SIZE);
+  
 }
 
-void SETTINGS_Load(void) {
-  EEPROM_ReadBuffer(SETTINGS_OFFSET, &gSettings, SETTINGS_SIZE);
+void SETTINGS_Load() {
+  Options opts = MEMMANAGER_getOptions(0);
+  MemBindata buf;
+  for(uint8_t i = 0; i < MAX_OPTIONS_LENGTH; i++){
+    Option opt = opts.options[i];
+    switch (opt.option) {
+      case eepromType:
+        gSettings.eepromType = MEMMANAGER_read_uint8_t(opt.address);
+        break;
+
+      case checkbyte:
+        gSettings.checkbyte = MEMMANAGER_read_uint8_t(opt.address);
+        break;
+
+      case squelch:
+        gSettings.squelch = MEMMANAGER_read_uint8_t(opt.address);
+        break;
+
+      case scrambler:
+        gSettings.scrambler = MEMMANAGER_read_uint8_t(opt.address);
+        break;
+
+      case batsave:
+        gSettings.batsave = MEMMANAGER_read_uint8_t(opt.address);
+        break;
+ 
+      case vox:
+        gSettings.vox = MEMMANAGER_read_uint8_t(opt.address);
+        break;
+
+      case backlight:
+        gSettings.backlight = MEMMANAGER_read_uint8_t(opt.address);
+        break;
+
+      case txTime:
+        gSettings.txTime = MEMMANAGER_read_uint8_t(opt.address);
+        break;
+
+      case micGain:
+        gSettings.micGain = MEMMANAGER_read_uint8_t(opt.address);
+        break;
+
+      case currentScanlist:
+        gSettings.currentScanlist = MEMMANAGER_read_uint8_t(opt.address);
+        break;
+
+      case roger:
+        gSettings.roger = MEMMANAGER_read_uint8_t(opt.address);
+        break;
+
+      case scanmode:
+        gSettings.scanmode = MEMMANAGER_read_uint8_t(opt.address);
+        break;
+
+      case chDisplayMode:
+
+        break;
+
+      case pttLock:
+        gSettings.eepromType = MEMMANAGER_read_uint8_t(opt.address);
+        break;
+
+      case crossBandScan:
+        gSettings.eepromType = MEMMANAGER_read_uint8_t(opt.address);
+        break;
+
+      case beep:
+        gSettings.eepromType = MEMMANAGER_read_uint8_t(opt.address);
+        break;
+
+      case keylock:
+        gSettings.eepromType = MEMMANAGER_read_uint8_t(opt.address);
+        break;
+
+      case busyChannelTxLock:
+        gSettings.eepromType = MEMMANAGER_read_uint8_t(opt.address);
+        break;
+
+      case ste:
+        gSettings.eepromType = MEMMANAGER_read_uint8_t(opt.address);
+        break;
+
+      case repeaterSte:
+        gSettings.eepromType = MEMMANAGER_read_uint8_t(opt.address);
+        break;
+
+      case dtmfdecode:
+        gSettings.eepromType = MEMMANAGER_read_uint8_t(opt.address);
+        break;
+
+      case brightness:
+        gSettings.eepromType = MEMMANAGER_read_uint8_t(opt.address);
+        break;
+
+      case contrast:
+        gSettings.eepromType = MEMMANAGER_read_uint8_t(opt.address);
+        break;
+
+      case mainApp:
+        
+        break;
+
+      // int8_t presetsCount = 24,
+      // int8_t activePreset = 25,
+      case batteryCalibration:
+        gSettings.batteryCalibration = MEMMANAGER_read_uint16_t(opt.address);
+        break;
+
+      case batteryType:
+
+        break;
+        
+      case batteryStyle:
+
+        break;
+
+      case sqOpenedTimeout:
+
+        break;
+
+      case sqClosedTimeout:
+
+        break;
+
+      case bound_240_280:
+        gSettings.bound_240_280 = MEMMANAGER_read_bool(opt.address);
+        break;
+
+      case noListen:
+        gSettings.noListen = MEMMANAGER_read_bool(opt.address);
+        break;
+
+      case si4732PowerOff:
+        gSettings.si4732PowerOff = MEMMANAGER_read_bool(opt.address);
+        break;
+
+      case dw:
+        gSettings.dw = MEMMANAGER_read_bool(opt.address);
+        break;
+
+
+      case toneLocal:
+        gSettings.toneLocal = MEMMANAGER_read_bool(opt.address);
+        break;
+
+      case backlightOnSquelch:
+
+        break;
+
+      case scanTimeout:
+        gSettings.scanTimeout = MEMMANAGER_read_uint8_t(opt.address);
+        break;
+
+      case sqlOpenTime: 
+        gSettings.sqlOpenTime = MEMMANAGER_read_uint8_t(opt.address);
+        break;
+
+      case sqlCloseTime:
+        gSettings.sqlCloseTime = MEMMANAGER_read_uint8_t(opt.address);
+        break;
+        
+      case skipGarbageFrequencies:
+        gSettings.skipGarbageFrequencies = MEMMANAGER_read_bool(opt.address);
+        break;
+
+      case activeVFO:
+        gSettings.activeVFO = MEMMANAGER_read_uint8_t(opt.address);
+        break;
+
+      case upconverter:
+        gSettings.upconverter = MEMMANAGER_read_uint32_t(opt.address);
+        break;
+
+      default:
+        break;       
+    }
+  }
+  
 }
 
 void SETTINGS_DelayedSave(void) {
