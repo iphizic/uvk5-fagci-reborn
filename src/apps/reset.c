@@ -1,9 +1,10 @@
 #include "reset.h"
+#include "../radio.h"
 #include "../driver/eeprom.h"
 #include "../driver/st7565.h"
-#include "../helper/channels.h"
+// #include "../helper/channels.h"
 #include "../helper/measurements.h"
-#include "../helper/presetlist.h"
+// #include "../helper/presetlist.h"
 #include "../helper/vfos.h"
 #include "../settings.h"
 #include "../ui/graphics.h"
@@ -11,9 +12,9 @@
 
 static uint32_t bytesMax = 0;
 static uint32_t bytesWrote = 0;
-static uint16_t channelsMax = 0;
-static uint16_t channelsWrote = 0;
-static uint8_t presetsWrote = 0;
+// static uint16_t channelsMax = 0;
+// static uint16_t channelsWrote = 0;
+// static uint8_t presetsWrote = 0;
 static uint8_t vfosWrote = 0;
 static bool settingsWrote = 0;
 
@@ -22,28 +23,36 @@ static EEPROMType eepromType;
 static VFO defaultVFOs[2] = {
     (VFO){
         .rx.f = 14550000,
-        .channel = -1,
         .modulation = MOD_FM,
         .radio = RADIO_UNKNOWN,
+        .step = STEP_1_0kHz,
+        .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+        .squelch = 3,
+        .gainIndex = 18,
+        .powCalib = {40, 65, 140},
     },
     (VFO){
         .rx.f = 43307500,
-        .channel = -1,
         .modulation = MOD_FM,
         .radio = RADIO_UNKNOWN,
+        .step = STEP_1_0kHz,
+        .squelchType = SQUELCH_RSSI_NOISE_GLITCH,
+        .squelch = 3,
+        .gainIndex = 18,
+        .powCalib = {40, 65, 140},
     },
 };
 
 static void startReset(EEPROMType t) {
   eepromType = t;
   gSettings.eepromType = eepromType;
-  presetsWrote = 0;
+  // presetsWrote = 0;
   vfosWrote = 0;
   bytesWrote = 0;
-  channelsWrote = 0;
+  // channelsWrote = 0;
   settingsWrote = false;
-  channelsMax = CHANNELS_GetCountMax();
-  bytesMax = ARRAY_SIZE(defaultPresets) * PRESET_SIZE + channelsMax * CH_SIZE;
+  // channelsMax = CHANNELS_GetCountMax();
+  bytesMax = SETTINGS_SIZE + VFO_SIZE * 2;
 }
 
 void RESET_Init(void) {
@@ -87,8 +96,8 @@ void RESET_Update(void) {
         .skipGarbageFrequencies = true,
         .scanTimeout = 50,
         .activeVFO = 0,
-        .activePreset = 9,
-        .presetsCount = ARRAY_SIZE(defaultPresets),
+        // .activePreset = 9,
+        // .presetsCount = ARRAY_SIZE(defaultPresets),
         .backlightOnSquelch = BL_SQL_ON,
         .batteryCalibration = 2000,
         .batteryType = BAT_1600,
@@ -101,22 +110,22 @@ void RESET_Update(void) {
     VFOS_Save(vfosWrote, &defaultVFOs[vfosWrote]);
     vfosWrote++;
     bytesWrote += VFO_SIZE;
-  } else if (presetsWrote < ARRAY_SIZE(defaultPresets)) {
-    Preset *p = &defaultPresets[presetsWrote];
-    p->band.gainIndex = 18;
-    p->band.squelch = 3;
-    p->band.squelchType = SQUELCH_RSSI_NOISE_GLITCH;
-    if (p->band.bounds.end < 3000000) {
-      p->radio = RADIO_SI4732; // TODO: if SI existing
-                               // default is RADIO_BK4819
-    }
-    PRESETS_SavePreset(presetsWrote, p);
-    presetsWrote++;
-    bytesWrote += PRESET_SIZE;
-  } else if (channelsWrote < channelsMax) {
-    CHANNELS_Delete(channelsWrote);
-    channelsWrote++;
-    bytesWrote += CH_SIZE;
+  // } else if (presetsWrote < ARRAY_SIZE(defaultPresets)) {
+  //   Preset *p = &defaultPresets[presetsWrote];
+  //   p->band.gainIndex = 18;
+  //   p->band.squelch = 3;
+  //   p->band.squelchType = SQUELCH_RSSI_NOISE_GLITCH;
+  //   if (p->band.bounds.end < 3000000) {
+  //     p->radio = RADIO_SI4732; // TODO: if SI existing
+  //                              // default is RADIO_BK4819
+  //   }
+  //   PRESETS_SavePreset(presetsWrote, p);
+  //   presetsWrote++;
+  //   bytesWrote += PRESET_SIZE;
+  // } else if (channelsWrote < channelsMax) {
+  //   CHANNELS_Delete(channelsWrote);
+  //   channelsWrote++;
+  //   bytesWrote += CH_SIZE;
   } else {
     SETTINGS_Save();
     NVIC_SystemReset();
@@ -138,7 +147,7 @@ void RESET_Render(void) {
 
   DrawRect(0, POS_Y, LCD_WIDTH, 10, C_FILL);
   FillRect(1, POS_Y, progressX, 10, C_FILL);
-  PrintMedium(0, 16, "%u/%u", channelsWrote, channelsMax);
+  // PrintMedium(0, 16, "%u/%u", channelsWrote, channelsMax);
   PrintMedium(0, 24, "%lu", bytesMax);
   PrintMediumEx(LCD_XCENTER, POS_Y + 8, POS_C, C_INVERT, "%u%",
                 bytesWrote * 100 / bytesMax);

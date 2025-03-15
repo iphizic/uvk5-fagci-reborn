@@ -1,7 +1,7 @@
 #include "components.h"
 #include "../driver/st7565.h"
 #include "../helper/measurements.h"
-#include "../helper/presetlist.h"
+// #include "../helper/presetlist.h"
 #include "graphics.h"
 #include <stdint.h>
 
@@ -47,10 +47,10 @@ void UI_RSSIBar(uint16_t rssi, int8_t s, uint32_t f, uint8_t y) {
 void UI_FSmall(uint32_t f) {
   PrintSmallEx(LCD_WIDTH - 1, 15, 2, true,
                modulationTypeOptions[RADIO_GetModulation()]);
-  PrintSmallEx(LCD_WIDTH - 1, 21, 2, true,
-               RADIO_GetBWName(gCurrentPreset->band.bw));
+  // PrintSmallEx(LCD_WIDTH - 1, 21, 2, true,
+               // RADIO_GetBWName(gCurrentPreset->band.bw));
 
-  uint16_t step = StepFrequencyTable[gCurrentPreset->band.step];
+  uint16_t step = StepFrequencyTable[radio->step];
 
   PrintSmall(0, 21, "%u.%02uk", step / 100, step % 100);
 
@@ -61,7 +61,7 @@ void UI_FSmall(uint32_t f) {
   PrintSmallEx(32, 21, POS_C, C_FILL, "S:%u", RADIO_GetSNR());
   PrintSmallEx(52, 21, POS_C, C_FILL, "N:%u", BK4819_GetNoise());
   PrintSmallEx(72, 21, POS_C, C_FILL, "G:%u", BK4819_GetGlitch());
-  PrintSmallEx(92, 21, POS_C, C_FILL, "SQ:%u", gCurrentPreset->band.squelch);
+  PrintSmallEx(92, 21, POS_C, C_FILL, "SQ:%u", radio->squelch);
 
   PrintMediumEx(64, 15, POS_C, C_FILL, "%u.%05u", f / MHZ, f % MHZ);
 }
@@ -77,10 +77,10 @@ void drawTicks(uint8_t y, uint32_t fs, uint32_t fe, uint32_t div, uint8_t h) {
   }
 }
 
-void UI_DrawTicks(uint8_t y, const Band *band) {
-  const FRange *range = &band->bounds;
-  uint32_t fs = range->start;
-  uint32_t fe = range->end;
+void UI_DrawTicks(uint8_t y, uint32_t fs, uint32_t fe) {
+  // const FRange *range = &band->bounds;
+  // uint32_t fs = range->start;
+  // uint32_t fe = range->end;
   uint32_t bw = fe - fs;
 
   for (uint32_t p = 100000000; p >= 10; p /= 10) {
@@ -92,8 +92,7 @@ void UI_DrawTicks(uint8_t y, const Band *band) {
   }
 }
 
-void UI_DrawSpectrumElements(const uint8_t sy, uint8_t msmDelay, int16_t sq,
-                             Band *currentBand) {
+void UI_DrawSpectrumElements(const uint8_t sy, uint8_t msmDelay, int16_t sq, uint32_t fs, uint32_t fe) {
   PrintSmallEx(0, sy - 3, POS_L, C_FILL, "%ums", msmDelay);
   if (sq >= 255) {
     PrintSmallEx(LCD_WIDTH - 2, sy - 3, POS_R, C_FILL, "SQ off");
@@ -101,15 +100,15 @@ void UI_DrawSpectrumElements(const uint8_t sy, uint8_t msmDelay, int16_t sq,
     PrintSmallEx(LCD_WIDTH - 2, sy - 3, POS_R, C_FILL, "SQ %d", sq);
   }
   PrintSmallEx(LCD_WIDTH - 2, sy - 3 + 6, POS_R, C_FILL, "%s",
-               modulationTypeOptions[currentBand->modulation]);
+               modulationTypeOptions[radio->modulation]);
 
-  if (gLastActiveLoot) {
-    PrintMediumBoldEx(LCD_XCENTER, 14, POS_C, C_FILL, "%u.%05u",
-                      gLastActiveLoot->f / MHZ, gLastActiveLoot->f % MHZ);
-  }
+  // if (gLastActiveLoot) {
+  //   PrintMediumBoldEx(LCD_XCENTER, 14, POS_C, C_FILL, "%u.%05u",
+  //                     gLastActiveLoot->f / MHZ, gLastActiveLoot->f % MHZ);
+  // }
 
-  uint32_t fs = currentBand->bounds.start;
-  uint32_t fe = currentBand->bounds.end;
+  // uint32_t fs = currentBand->bounds.start;
+  // uint32_t fe = currentBand->bounds.end;
 
   PrintSmallEx(0, LCD_HEIGHT - 1, POS_L, C_FILL, "%u.%05u", fs / MHZ, fs % MHZ);
   PrintSmallEx(LCD_WIDTH, LCD_HEIGHT - 1, POS_R, C_FILL, "%u.%05u", fe / MHZ,

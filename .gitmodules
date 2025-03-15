@@ -4,3 +4,6 @@
 [submodule "src/external/CMSIS_5"]
 	path = src/external/CMSIS_5
 	url = https://github.com/ARM-software/CMSIS_5.git
+[submodule "src/external/littlefs"]
+	path = src/external/littlefs
+	url = https://github.com/littlefs-project/littlefs.git

@@ -10,7 +10,7 @@
 #include "driver/uart.h"
 #include "external/CMSIS_5/Device/ARM/ARMCM0/Include/ARMCM0.h"
 #include "helper/battery.h"
-#include "helper/presetlist.h"
+// #include "helper/presetlist.h"
 #include "radio.h"
 #include "scheduler.h"
 #include "settings.h"
@@ -69,7 +69,7 @@ static void Intro(void) {
   PrintMediumBoldEx(LCD_XCENTER, LCD_YCENTER, POS_C, C_FILL, "r3b0rn");
   ST7565_Blit();
 
-  if (PRESETS_Load()) {
+  // if (PRESETS_Load()) {
     if (gSettings.beep) {
       AUDIO_PlayTone(1400, 50);
     }
@@ -87,7 +87,7 @@ static void Intro(void) {
     if (gSettings.beep) {
       AUDIO_PlayTone(1400, 50);
     }
-  }
+  // }
 }
 
 void Main(void) {
